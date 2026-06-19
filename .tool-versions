@@ -1,0 +1,5 @@
+# mise / asdf — pins the runtime versions for the whole monorepo.
+# `mise install` (or `asdf install`) reads this file and provisions matching binaries.
+python 3.12.3
+nodejs 20.18.0
+pnpm 9.12.0

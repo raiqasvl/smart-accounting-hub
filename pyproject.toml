@@ -1,0 +1,65 @@
+# Root pyproject.toml — `uv` workspace root for the Python side of the monorepo.
+#
+# The workspace contains three Python packages:
+#   - packages/core         domain models, repos, services, FX clients, config, i18n
+#   - apps/api              FastAPI surface (depends on core)
+#   - apps/bot              aiogram bot (depends on core)
+#
+# Migrations live at the repo root (migrations/) and import smart_accounting models.
+#
+# Ruff + mypy + pytest configuration lives here at the root so all packages share rules.
+# Per-package pyproject.toml files only declare their own deps + entry points.
+
+[project]
+name = "smart-accounting-hub"
+version = "0.1.0"
+description = "Telegram Mini-App-driven personal/family/business FX accounting tool."
+readme = "README.md"
+requires-python = ">=3.12"
+
+# Workspace runtime deps are declared in the per-package pyproject.toml files
+# (apps/api, apps/bot, packages/core). The root project itself has no runtime deps.
+dependencies = []
+
+[tool.uv.workspace]
+members = ["apps/api", "apps/bot", "packages/core"]
+
+[tool.uv.sources]
+# Path-deps so apps/* always resolve the core package from the workspace, not PyPI.
+smart-accounting = { workspace = true }
+
+[dependency-groups]
+dev = [
+    # Lint, format, type, test, migrations
+    "ruff>=0.7",
+    "mypy>=1.11",
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=5.0",
+    "respx>=0.21",                  # httpx mocking (FX client tests)
+    "hypothesis>=6.112",            # property-based tests for HMAC + ltree
+    "alembic>=1.13",
+]
+
+# --- ruff ---
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["packages/core/src", "apps/api/src", "apps/bot/src"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP", "ASYNC", "SIM", "RUF"]
+ignore = ["E501"]                   # line length is enforced by `format`, not by `lint`
+
+# --- mypy ---
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+exclude = ["build/", "dist/", ".venv/", "research/"]
+
+# --- pytest ---
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["packages/core/tests", "apps/api/tests", "apps/bot/tests"]
+addopts = "-ra --strict-markers"

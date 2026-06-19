@@ -1,0 +1,6 @@
+# pnpm workspace — declares the JS/TS packages in the monorepo.
+# `pnpm install` from the repo root will resolve all dependencies for every package.
+
+packages:
+  - "apps/miniapp"
+  - "packages/api-types"

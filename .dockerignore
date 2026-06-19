@@ -1,0 +1,26 @@
+# Mirrors .gitignore but stricter — keep build context lean for fast `docker compose build`.
+# The Dockerfile in the repo root copies the whole tree; this list trims it.
+
+.git
+.github
+.claude
+.cursor
+.thoughts
+thoughts
+research
+docs
+node_modules
+.venv
+.next
+.turbo
+.pytest_cache
+.mypy_cache
+.ruff_cache
+__pycache__
+*.pyc
+.env
+.env.local
+db/password.txt
+ops/.local-data
+*.md
+!THIRD_PARTY_NOTICES.md

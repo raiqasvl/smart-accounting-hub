@@ -1,0 +1,26 @@
+{
+  "name": "smart-accounting-hub",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Root package: holds Turborepo config + dev tooling shared across apps/miniapp and packages/api-types.",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "lint": "oxlint --config .oxlintrc.json",
+    "lint:fix": "oxlint --config .oxlintrc.json --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,yaml,yml,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,yaml,yml,css}\"",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "types:gen": "openapi-typescript http://localhost:8000/openapi.json -o packages/api-types/src/api.d.ts"
+  },
+  "devDependencies": {
+    "turbo": "^2.1.0",
+    "typescript": "^5.5.0",
+    "openapi-typescript": "^7.4.0",
+    "prettier": "^3.3.0",
+    "prettier-plugin-tailwindcss": "^0.6.0",
+    "oxlint": "^0.10.0"
+  },
+  "packageManager": "pnpm@9.12.0"
+}

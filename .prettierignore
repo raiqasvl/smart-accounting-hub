@@ -1,0 +1,21 @@
+# Don't run Prettier over generated, vendored, or non-TS files.
+
+node_modules
+.next
+.turbo
+dist
+build
+*.tsbuildinfo
+packages/api-types/src/api.d.ts
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+research
+thoughts
+
+# Python files use ruff, not prettier.
+*.py
+*.pyi
+
+# Markdown handled by markdownlint, not prettier (preserves YAML frontmatter precisely).
+*.md
