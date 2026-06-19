@@ -1,0 +1,15 @@
+Alembic migrations.
+
+Generate a new revision:
+
+    docker compose -f ops/compose.yml exec api alembic revision --autogenerate -m "<short slug>"
+
+Apply:
+
+    docker compose -f ops/compose.yml exec api alembic upgrade head
+
+Check (runs in CI on every PR):
+
+    docker compose -f ops/compose.yml exec api alembic check
+
+The post_write_hook in alembic.ini auto-runs `ruff format` on every newly generated revision file.

@@ -1,0 +1,2 @@
+# Migrations are committed to git. M1 lands `2026_05_01_<rev>_initial.py` here.
+# Subsequent milestones add migrations as new tables/columns ship.

@@ -1,0 +1,43 @@
+# Local-dev compose: Postgres + Redis only.
+#
+# `apps/api` and `apps/bot` run on the host via `uv run` for fast hot-reload.
+# `apps/miniapp` runs on the host via `pnpm --filter miniapp dev`.
+# Cloudflared tunnels host:3000 -> public HTTPS for Telegram WebApp loading.
+#
+# Bring up:    make up   (or: docker compose -f ops/compose.yml up -d)
+# Tear down:   make down
+
+services:
+  db:
+    image: postgres:16
+    user: postgres
+    ports: ["5432:5432"]
+    secrets: [db-password]
+    environment:
+      POSTGRES_DB: smart_accounting
+      POSTGRES_USER: smart_accounting
+      POSTGRES_PASSWORD_FILE: /run/secrets/db-password
+    volumes:
+      - "db-data:/var/lib/postgresql/data"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "smart_accounting"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    volumes:
+      - "redis-data:/data"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  db-data:
+  redis-data:
+
+secrets:
+  db-password:
+    file: ../db/password.txt
