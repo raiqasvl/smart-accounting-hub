@@ -1,0 +1,39 @@
+{
+  "name": "@smart-accounting/miniapp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Telegram Mini-App for smart-accounting-hub. Next.js 15 App Router. Served from Caddy at https://${DOMAIN}/.",
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "lint": "oxlint --config ../../.oxlintrc.json src/",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "//": "Q5-locked: Money is a string at the wire. `big.js` lands here when the first money endpoint ships (M2).",
+  "dependencies": {
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "@tanstack/react-query": "^5.59.0",
+    "@telegram-apps/sdk-react": "^2.0.0",
+    "recharts": "^2.13.0",
+    "@fluent/bundle": "^0.18.0",
+    "@fluent/react": "^0.15.0",
+    "zod": "^3.23.0",
+    "tailwindcss": "^3.4.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.0",
+    "tailwind-merge": "^2.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.1.0",
+    "postcss": "^8.4.0",
+    "autoprefixer": "^10.4.0"
+  }
+}
