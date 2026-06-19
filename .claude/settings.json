@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv run:*)",
+      "Bash(uv sync:*)",
+      "Bash(uv lock:*)",
+      "Bash(pnpm:*)",
+      "Bash(turbo:*)",
+      "Bash(make:*)",
+      "Bash(alembic:*)",
+      "Bash(ruff:*)",
+      "Bash(mypy:*)",
+      "Bash(pytest:*)",
+      "Bash(oxlint:*)",
+      "Bash(prettier:*)",
+      "Bash(docker compose:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(sed:*)"
+    ],
+    "defaultMode": "bypassPermissions",
+    "deny": [],
+    "ask": []
+  },
+  "env": {
+    "MAX_THINKING_TOKENS": "32000"
+  }
+}
