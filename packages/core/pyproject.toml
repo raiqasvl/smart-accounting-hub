@@ -1,0 +1,31 @@
+# packages/core — the domain core.
+# Both apps/api and apps/bot depend on this package; nothing in here imports either of them.
+# All business logic lives here (services/), all persistence here (models/, repositories/),
+# all auth helpers here (auth/), all FX provider clients here (fx/), all i18n strings here (i18n/).
+
+[project]
+name = "smart-accounting"
+version = "0.1.0"
+description = "Domain core: models, repositories, services, FX clients, auth, i18n. Imported by apps/api and apps/bot."
+requires-python = ">=3.12"
+dependencies = [
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30",
+    "alembic>=1.13",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.5",
+    "dishka>=1.4",
+    "httpx>=0.27",
+    "pyjwt>=2.9",
+    "fluent.runtime>=0.4",              # i18n in shared services where it can't be deferred to UI layer (rare; mostly bot dialog text via aiogram-i18n)
+    "aiogram-i18n>=1.4",                # bot middleware that consumes Fluent bundles
+    "structlog>=24.4",
+    "sqlalchemy-utils>=0.41",           # LtreeType for hierarchical categories (D14)
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/smart_accounting"]
