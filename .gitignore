@@ -1,0 +1,58 @@
+# --- agent / editor scratch ---
+.thoughts*
+.DS_Store
+
+# --- agent-local config (machine-specific or secret-bearing; keep out of git) ---
+.claude/settings.local.json
+.cursor/mcp.json
+**/skill-report.json
+
+# --- secrets ---
+.env
+.env.local
+.env.*.local
+db/password.txt
+*.pem
+*.key
+restic-password.txt
+
+# --- python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+.uv-cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+
+# --- node / next.js ---
+node_modules/
+.next/
+.turbo/
+.pnpm-store/
+*.tsbuildinfo
+out/
+
+# --- generated / build artefacts ---
+packages/api-types/src/api.d.ts.tmp
+apps/miniapp/public/sw.js
+
+# --- docker / data volumes (in case we ever bind-mount) ---
+ops/.local-data/
+
+# --- editor ---
+.idea/
+.vscode/*
+!.vscode/settings.json.example
+*.swp
+*~
+
+# --- research clones (keep clones out of git; they live on disk only) ---
+# Anchored to repo root so it does NOT match thoughts/shared/research/ (which IS tracked).
+/research/
