@@ -50,13 +50,27 @@ at **Phase 3**.
     `code_visible`→CurrencyUnknown 422; list; patch=account.write; delete=owner-only + AccountInUse
     409 when referenced). `routers/accounts.py` (`POST|GET /books/{id}/accounts?archived=`,
     `PATCH|DELETE /accounts/{id}` — bare routes load book_id from the account, then authz).
-- **Gates: all green** — ruff + format + mypy (80 files), `alembic check` clean, **96 tests pass**,
-  D22 grep-guard clean, DB residue-free. **M2 backend (Phases 1–5) is complete.**
+  - **Phase 6 done (automated); manual gate pending** — aiogram-dialog flows wired via
+    `setup_dialogs` + dialog routers in `main.setup_dispatcher`. New: `dialogs/` package
+    (`states`, `common` [Dishka-container + i18n + Actor helpers], `create_book`, `create_account`,
+    `join_invite`, `books_menu`). Commands: `/start invite_<token>` deep-link → JoinInvite dialog;
+    `/books` → switcher; `/newbook`, `/newaccount`. Core additions: `services/__init__` exports the
+    M2 services; `TgChatService.context(chat_id)` → (user_id, active_book_id); `InviteService.preview`
+    (non-consuming). Fluent keys added en+ru (buttons/roles/book/account/invite/books). Tests:
+    `test_dialogs.py` (handler service-calls via faked DialogManager), `test_deeplink_dispatch.py`
+    (real dispatcher, MemoryStorage, seeded invite). **GOTCHA**: aiogram-dialog getters receive
+    `dialog_manager` **by keyword** (not `manager`); the command router + Dialog objects are
+    module-level singletons — bot conftest autouse fixture detaches `_parent_router` between tests.
+- **Gates: all green** — ruff + format + mypy (86 files), `alembic check` clean, **102 tests pass**,
+  D22 grep-guard clean, DB residue-free. **M2 backend (1–5) + bot code (6) complete; uncommitted
+  except the committed backend `9dde440`.**
 
-## What's next (M2 Phases 6–7 — user-facing, manual gates)
+## What's next (finish M2)
 Plan: `thoughts/shared/plans/2026-07-21-m2-books-invites-accounts.md` (ready-for-dev, decisions
 confirmed: full M2 incl. bot dialogs; hand-rolled Tailwind UI).
-- **Phase 6** — Bot aiogram-dialog flows + rolling message UX (manual gate).
+- **Phase 6 MANUAL GATE** — run `make dev-bot` (no tunnel needed for dialogs) and drive `/newbook`,
+  `/newaccount`, `/books`, and an `invite_<token>` deep-link on Telegram. Only the `/start`
+  "Open App" button needs a live tunnel+miniapp (that's Phase 7).
 - **Phase 7** — Mini-App Tailwind + hand-rolled shadcn shell, book picker, accounts, invites
   (real-phone gate).
 

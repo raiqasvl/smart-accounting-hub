@@ -103,6 +103,20 @@ class InviteService:
                 raise InviteInvalid({"invite_id": invite_id})
             await self._invites.delete(invite_id)
 
+    async def preview(self, token: str) -> tuple[str, int]:
+        """Validate a token and return (book_name, role) for a join-confirmation prompt, without
+        consuming it. Raises the same InviteInvalid/InviteExpired the accept path would."""
+        async with self._uow:
+            invite = await self._invites.get_by_token(token)
+            if invite is None:
+                raise InviteInvalid({"token": token})
+            if invite.expires_at <= datetime.now(tz=UTC):
+                raise InviteExpired({"token": token})
+            book = await self._books.get(invite.book_id)
+            if book is None:
+                raise BookNotFound({"book_id": invite.book_id})
+            return book.name, invite.role
+
     async def accept(self, token: str, user_id: int) -> BookOut:
         async with self._uow:
             invite = await self._invites.get_by_token(token)

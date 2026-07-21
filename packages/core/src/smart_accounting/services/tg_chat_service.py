@@ -29,3 +29,12 @@ class TgChatService:
     async def set_last_message(self, chat_id: int, message_id: int) -> None:
         async with self._uow:
             await self._tg_chats.set_last_message_id(chat_id, message_id)
+
+    async def context(self, chat_id: int) -> tuple[int, int | None] | None:
+        """This chat's (domain user_id, active_book_id) — the bot's way to resolve who/where a
+        command applies to without touching repositories. None if the chat was never onboarded."""
+        async with self._uow:
+            chat = await self._tg_chats.get(chat_id)
+            if chat is None:
+                return None
+            return chat.user_id, chat.active_book_id

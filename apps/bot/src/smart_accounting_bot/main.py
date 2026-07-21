@@ -8,9 +8,11 @@ from __future__ import annotations
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
+from aiogram_dialog import setup_dialogs
 
 from smart_accounting.config import get_config
 
+from .dialogs import all_dialogs
 from .handlers import commands
 from .i18n import build_i18n_middleware
 from .storage import build_storage
@@ -29,6 +31,10 @@ def build_dispatcher() -> Dispatcher:
 
 
 def setup_dispatcher(dp: Dispatcher) -> None:
-    """Include routers and the Fluent i18n middleware. (aiogram-dialog scenes land in M2.)"""
+    """Include the command router + M2 dialog routers, wire Fluent i18n, and activate
+    aiogram-dialog. Order: commands first, then dialogs, then setup_dialogs()."""
     dp.include_router(commands.router)
+    for dialog in all_dialogs():
+        dp.include_router(dialog)
     build_i18n_middleware().setup(dispatcher=dp)
+    setup_dialogs(dp)

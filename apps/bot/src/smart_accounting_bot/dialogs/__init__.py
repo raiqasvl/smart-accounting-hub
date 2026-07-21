@@ -1,13 +1,29 @@
-# aiogram-dialog Dialog registrations.
+# aiogram-dialog Dialog registrations (M2 flows built; M3-M4 flows land later).
 #
-# Per plan §2.2/§2.5/§3.5/§4.1 (M2-M4):
-#   - create_book_dialog        (M2) Name → Kind → BaseCurrency → Confirm
-#   - join_via_invite_dialog    (M2) AcceptRole → Done
-#   - create_account_dialog     (M2) CurrencyPicker → KindPicker → Name → OpeningBalance → Confirm
-#   - book_picker_dialog        (M2) Select from user's books
-#   - record_trade_dialog       (M3) Direction → BaseCurrency → QuoteCurrency → BaseAccount → QuoteAccount
-#                                    → AmountQuote → Rate → OccurredAt → Note → Confirm
-#   - internal_transfer_dialog  (M4) FromAccount → ToAccount → Amount → Note → Confirm
-#   - language_picker_dialog    (M2) en | ru
+#   - create_book_dialog      (M2) Name → Kind → BaseCurrency → Confirm → Done
+#   - create_account_dialog   (M2) Currency → Kind → Name → OpeningBalance → Confirm → Done
+#   - join_invite_dialog      (M2) AcceptRole → Done
+#   - books_menu_dialog       (M2) Select from the user's books → switch
 #
-# Public function: `register_dialogs(dp: Dispatcher)` includes every Dialog on the Dispatcher.
+# `all_dialogs()` returns the Dialog routers to include on the dispatcher. `setup_dialogs(dp)`
+# (from aiogram_dialog) must ALSO be called once — see main.setup_dispatcher.
+from __future__ import annotations
+
+from aiogram_dialog import Dialog
+
+from .books_menu import books_menu_dialog
+from .create_account import create_account_dialog
+from .create_book import create_book_dialog
+from .join_invite import join_invite_dialog
+
+
+def all_dialogs() -> list[Dialog]:
+    return [
+        create_book_dialog,
+        create_account_dialog,
+        join_invite_dialog,
+        books_menu_dialog,
+    ]
+
+
+__all__ = ["all_dialogs"]
