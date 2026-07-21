@@ -65,14 +65,26 @@ at **Phase 3**.
   D22 grep-guard clean, DB residue-free. **M2 backend (1–5) + bot code (6) complete; uncommitted
   except the committed backend `9dde440`.**
 
+  - **Phase 7 done (automated); real-phone gate pending** — committed backend `9dde440`, bot
+    `41c2f17`. Mini-App: `globals.css` (@tailwind + Telegram `--tg-theme-*` → CSS var tokens),
+    Tailwind tokens in `tailwind.config.ts`; hand-rolled primitives `components/ui.tsx`
+    (Button/Card/Badge/Input/Select/Field/Spinner/Drawer via cva); `lib/utils.ts` (`cn`),
+    `lib/strings.ts` (en/ru dict + `useT`), `lib/hooks.ts` (TanStack Query over all M2 endpoints),
+    extended `lib/api-client.ts` (authed GET/POST/PATCH/DELETE + typed verbs). Shell
+    `components/app-shell.tsx` (header book-picker → switchBook re-mints JWT; role badge; bottom tab
+    bar) + `books-tab` / `accounts-tab` / `settings-tab` (invites, owner/admin-gated). `page.tsx`
+    renders `<AppShell/>`. `api-types` regenerated from live OpenAPI (all M2 schemas) + aliases in
+    `index.ts`. **Gates**: tsc + oxlint + `next build` + prettier all green. RBAC in UI: delete =
+    owner only, archive/create = editor+, invites = owner/admin.
+- **Gate totals**: Python 102 tests + mypy(86) + ruff + D22 all green; miniapp tsc/lint/build green.
+
 ## What's next (finish M2)
-Plan: `thoughts/shared/plans/2026-07-21-m2-books-invites-accounts.md` (ready-for-dev, decisions
-confirmed: full M2 incl. bot dialogs; hand-rolled Tailwind UI).
-- **Phase 6 MANUAL GATE** — run `make dev-bot` (no tunnel needed for dialogs) and drive `/newbook`,
-  `/newaccount`, `/books`, and an `invite_<token>` deep-link on Telegram. Only the `/start`
-  "Open App" button needs a live tunnel+miniapp (that's Phase 7).
-- **Phase 7** — Mini-App Tailwind + hand-rolled shadcn shell, book picker, accounts, invites
-  (real-phone gate).
+- **Phase 6 MANUAL GATE** — `make dev-bot` (no tunnel needed): drive `/newbook`, `/newaccount`,
+  `/books`, and an `invite_<token>` deep-link on Telegram.
+- **Phase 7 REAL-PHONE GATE** — `make dev-api` + `make dev-miniapp` + `make tunnel`; set `.env`
+  DOMAIN to the tunnel host + restart the bot; open the Mini-App from `/start` → test book
+  create/switch, account create/archive/delete, invite mint + copy-link. Editor sees no Delete.
+- **Commit**: Phase 7 (miniapp + api-types) is **uncommitted** on `main`.
 
 ## Conventions to keep (M1/M2)
 - Services return Pydantic DTOs; transactions begin/end in a service via `UoW` (`async with self._uow`
