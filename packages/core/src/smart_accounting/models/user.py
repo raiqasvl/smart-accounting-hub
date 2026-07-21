@@ -1,18 +1,21 @@
-# users — Telegram-identified humans.
-#
-# Per plan §1.3 (M1) initial migration:
-#   id BIGSERIAL PRIMARY KEY
-#   telegram_user_id BIGINT UNIQUE NOT NULL          # the canonical identity (we don't auth any other way)
-#   telegram_username TEXT NULL                      # @handle, mutable; logged but not authoritative
-#   first_name TEXT NULL
-#   last_name TEXT NULL
-#   language TEXT NOT NULL DEFAULT 'en'              # 'en' | 'ru' (D13: i18n on bot/Mini-App side)
-#   timezone TEXT NOT NULL DEFAULT 'UTC'             # IANA TZ name
-#   is_blocked BOOLEAN NOT NULL DEFAULT FALSE        # admin kill-switch
-#   created_at, updated_at                           # from Base mixin
-#
-# Relationships:
-#   tg_chats     1-many → TgChat
-#   memberships  1-many → BookMember
-#   owned_books  1-many → Book (via owner_id)
-#   transactions 1-many → FxTransaction (via created_by_user_id)
+# users — Telegram-identified humans. telegram_user_id is the canonical identity (D-baseline).
+from __future__ import annotations
+
+from sqlalchemy import Boolean, Text, text
+from sqlalchemy.orm import Mapped, mapped_column
+
+from .base import Base
+from .fields import bigserial_pk, tg_user_id
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[bigserial_pk]
+    telegram_user_id: Mapped[tg_user_id]
+    telegram_username: Mapped[str | None] = mapped_column(Text)
+    first_name: Mapped[str | None] = mapped_column(Text)
+    last_name: Mapped[str | None] = mapped_column(Text)
+    language: Mapped[str] = mapped_column(Text, nullable=False, server_default="en")
+    timezone: Mapped[str] = mapped_column(Text, nullable=False, server_default="UTC")
+    is_blocked: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))

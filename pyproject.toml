@@ -46,6 +46,8 @@ dev = [
 line-length = 100
 target-version = "py312"
 src = ["packages/core/src", "apps/api/src", "apps/bot/src"]
+# Vendored agent/editor tooling assets — not project source, not subject to our lint rules.
+extend-exclude = [".agents", ".cursor", ".claude"]
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "B", "UP", "ASYNC", "SIM", "RUF"]
@@ -56,10 +58,18 @@ ignore = ["E501"]                   # line length is enforced by `format`, not b
 python_version = "3.12"
 strict = true
 plugins = ["pydantic.mypy"]
-exclude = ["build/", "dist/", ".venv/", "research/"]
+# Test suites live under three roots (packages/core, apps/api, apps/bot) and share the flat
+# module names `tests`/`conftest`; that collides under mypy's file->module mapping. Tests are
+# fixture scaffolding, kept out of the strict type gate. Pytest uses importlib mode (below).
+exclude = ["build/", "dist/", ".venv/", "research/", "/tests/"]
+
+[[tool.mypy.overrides]]
+# Untyped third-party libs (no py.typed / no stubs). Scoped so strict stays on everywhere else.
+module = ["sqlalchemy_utils.*", "aiogram_i18n.*", "fluent.*"]
+ignore_missing_imports = true
 
 # --- pytest ---
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["packages/core/tests", "apps/api/tests", "apps/bot/tests"]
-addopts = "-ra --strict-markers"
+addopts = "-ra --strict-markers --import-mode=importlib"

@@ -1,11 +1,20 @@
-# Structlog + Sentry initialization (D17).
+# Observability bootstrap — M1 uses stdlib logging only (supersedes milestone plan §1.9).
 #
-# Per plan §1.9 (M1):
-#   - configure_observability(sentry_dsn, environment) sets up:
-#       * structlog with merge_contextvars, add_log_level, ISO timestamp, JSONRenderer.
-#       * stdlib logging at INFO writing to stdout (json-format).
-#       * sentry_sdk.init() with FastApiIntegration + AsyncioIntegration; traces_sample_rate 0.1.
-#   - Called once at process boot in apps/api/main.py and apps/bot/__main__.py before anything else.
-#
-# Logs to stdout, picked up by Docker's json-file driver and (later) shipped to Loki.
-# No Prometheus, no OpenTelemetry — explicitly deferred to v1.1+ per D17.
+# structlog + a full log pipeline are deferred; Sentry initializes only when SENTRY_DSN is set
+# (a no-op locally). Called once at process boot in apps/api/main.py and apps/bot/__main__.py.
+from __future__ import annotations
+
+import logging
+import sys
+
+
+def configure_observability(*, sentry_dsn: str | None, environment: str, log_level: str) -> None:
+    logging.basicConfig(
+        level=log_level,
+        stream=sys.stdout,
+        format="%(asctime)s %(levelname)s %(name)s %(message)s",
+    )
+    if sentry_dsn:
+        import sentry_sdk
+
+        sentry_sdk.init(dsn=sentry_dsn, environment=environment, traces_sample_rate=0.1)

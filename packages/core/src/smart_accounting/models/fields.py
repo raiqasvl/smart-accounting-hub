@@ -1,15 +1,31 @@
-# Reusable Annotated SQLAlchemy column types.
+# Originally derived from AiogramBotTemplate (https://github.com/arturboyun/AiogramBotTemplate)
+# Copyright (c) 2024 Artur Boyun. MIT License. See THIRD_PARTY_NOTICES.md.
 #
-# Per plan §1.2 (M1, cherry-picked from research/AiogramBotTemplate/bot/models/fields.py:1-19),
-# extended for our domain:
-#
-#   uuid_pk         UUID primary key with gen_random_uuid() server default        (cherry-picked)
-#   chat_id_bigint  BigInteger UNIQUE                                             (cherry-picked)
-#
-# Domain-specific additions:
-#   bigserial_pk    BIGSERIAL primary key (most domain tables use this — sequential, dense)
-#   currency_code   String(8) NOT NULL — ISO 4217 + crypto codes
-#   money_amount    NUMERIC(20, 8) NOT NULL — D5 precision contract
-#   ltree_path      LtreeType NOT NULL (categories.parents_tree, D14)
-#   tg_user_id      BigInteger UNIQUE NOT NULL (telegram_user_id on users)
-#   timestamptz     DateTime(timezone=True) NOT NULL DEFAULT now()
+# Reusable Annotated SQLAlchemy column types shared across the domain models.
+from __future__ import annotations
+
+from datetime import datetime
+from decimal import Decimal
+from typing import Annotated
+
+from sqlalchemy import BigInteger, DateTime, Numeric, String, func
+from sqlalchemy.orm import mapped_column
+from sqlalchemy_utils import Ltree, LtreeType
+
+# BIGSERIAL primary key — sequential, dense; used by most domain tables.
+bigserial_pk = Annotated[int, mapped_column(BigInteger, primary_key=True, autoincrement=True)]
+
+# Telegram user id — BigInteger, UNIQUE, NOT NULL (users.telegram_user_id).
+tg_user_id = Annotated[int, mapped_column(BigInteger, unique=True)]
+
+# ISO 4217 + crypto currency codes.
+currency_code = Annotated[str, mapped_column(String(8))]
+
+# D5 money precision contract — NUMERIC(20, 8).
+money_amount = Annotated[Decimal, mapped_column(Numeric(20, 8))]
+
+# Hierarchical category path (categories.parents_tree, D14).
+ltree_path = Annotated[Ltree, mapped_column(LtreeType)]
+
+# Timezone-aware timestamp with server-side default.
+timestamptz = Annotated[datetime, mapped_column(DateTime(timezone=True), server_default=func.now())]

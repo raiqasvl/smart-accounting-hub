@@ -1,21 +1,68 @@
-# Dishka providers — DI graph shared by api and bot processes.
+# Originally derived from AiogramBotTemplate (https://github.com/arturboyun/AiogramBotTemplate)
+# Copyright (c) 2024 Artur Boyun. MIT License. See THIRD_PARTY_NOTICES.md.
 #
-# Per plan §1.2 (M1, cherry-picked from research/AiogramBotTemplate/bot/ioc.py:8-12):
+# Dishka providers — the DI graph shared by the api and bot processes.
 #
-#   class DepsProvider(Provider):
-#       @provide(scope=Scope.REQUEST)
-#       async def get_uow(self) -> AsyncGenerator[UoW, None]:
-#           async with SessionFactory() as session:
-#               yield UoW(session)
+# APP scope: Settings, AsyncEngine, sessionmaker (one per process).
+# REQUEST scope: UoW (one session per request/update), plus repositories + services
+# (registered in later phases as they are written).
 #
-# M2-M5 expansion adds providers for:
-#   - Settings (Scope.APP, singleton via @lru_cache get_config())
-#   - AsyncEngine + sessionmaker (Scope.APP)
-#   - httpx.AsyncClient (Scope.APP, single shared client with connection pool)
-#   - FrankfurterClient (Scope.APP, depends on httpx)
-#   - Repository instances (Scope.REQUEST, depend on UoW)
-#   - Service instances (Scope.REQUEST, depend on Repositories)
-#   - JWT codec (Scope.APP, depends on Settings.JWT_SECRET)
-#
-# The same DepsProvider shape is used by both api (via dishka.integrations.fastapi.setup_dishka)
-# and bot (via dishka.integrations.aiogram.setup_dishka) — see apps/*/main.py.
+# Consumed by api via dishka.integrations.fastapi.setup_dishka and by bot via
+# dishka.integrations.aiogram.setup_dishka — see apps/*/main.py.
+from __future__ import annotations
+
+from collections.abc import AsyncIterator
+
+from dishka import AsyncContainer, Provider, Scope, make_async_container, provide
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
+
+from smart_accounting.auth.jwt import JwtCodec
+from smart_accounting.common.uow import UoW
+from smart_accounting.config import Settings, get_config
+from smart_accounting.database.engine import build_engine, build_session_factory
+from smart_accounting.repositories.book_members import BookMembersRepo
+from smart_accounting.repositories.books import BooksRepo
+from smart_accounting.repositories.tg_chats import TgChatsRepo
+from smart_accounting.repositories.users import UsersRepo
+from smart_accounting.services.auth_service import AuthService
+from smart_accounting.services.tg_chat_service import TgChatService
+from smart_accounting.services.user_service import UserService
+
+
+class DepsProvider(Provider):
+    @provide(scope=Scope.APP)
+    def get_settings(self) -> Settings:
+        return get_config()
+
+    @provide(scope=Scope.APP)
+    def get_engine(self, settings: Settings) -> AsyncEngine:
+        return build_engine(settings.POSTGRES_DSN)
+
+    @provide(scope=Scope.APP)
+    def get_session_factory(self, engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:
+        return build_session_factory(engine)
+
+    @provide(scope=Scope.APP)
+    def get_jwt_codec(self, settings: Settings) -> JwtCodec:
+        return JwtCodec(settings.JWT_SECRET, settings.JWT_LIFETIME_SECONDS)
+
+    @provide(scope=Scope.REQUEST)
+    async def get_uow(
+        self, session_factory: async_sessionmaker[AsyncSession]
+    ) -> AsyncIterator[UoW]:
+        async with session_factory() as session:
+            yield UoW(session)
+
+    # Repositories + services (REQUEST scope; Dishka wires their constructor deps by type).
+    users_repo = provide(UsersRepo, scope=Scope.REQUEST)
+    books_repo = provide(BooksRepo, scope=Scope.REQUEST)
+    members_repo = provide(BookMembersRepo, scope=Scope.REQUEST)
+    tg_chats_repo = provide(TgChatsRepo, scope=Scope.REQUEST)
+    user_service = provide(UserService, scope=Scope.REQUEST)
+    auth_service = provide(AuthService, scope=Scope.REQUEST)
+    tg_chat_service = provide(TgChatService, scope=Scope.REQUEST)
+
+
+def build_container() -> AsyncContainer:
+    """Build the process-wide async DI container from DepsProvider."""
+    return make_async_container(DepsProvider())

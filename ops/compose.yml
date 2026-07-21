@@ -11,26 +11,29 @@ services:
   db:
     image: postgres:16
     user: postgres
-    ports: ["5432:5432"]
+    # Host 5433 -> container 5432. Non-default host port so it doesn't clash with other local
+    # Postgres instances/containers. DSNs in .env use localhost:5433.
+    ports: ['5433:5432']
     secrets: [db-password]
     environment:
       POSTGRES_DB: smart_accounting
       POSTGRES_USER: smart_accounting
       POSTGRES_PASSWORD_FILE: /run/secrets/db-password
     volumes:
-      - "db-data:/var/lib/postgresql/data"
+      - 'db-data:/var/lib/postgresql/data'
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "smart_accounting"]
+      test: ['CMD', 'pg_isready', '-U', 'smart_accounting']
       interval: 5s
       retries: 10
 
   redis:
     image: redis:7-alpine
-    ports: ["6379:6379"]
+    # Host 6380 -> container 6379 (non-default host port). REDIS_DSN in .env uses localhost:6380.
+    ports: ['6380:6379']
     volumes:
-      - "redis-data:/data"
+      - 'redis-data:/data'
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
       retries: 10
 

@@ -1,14 +1,23 @@
-# book_members — junction table user × book × role.
-#
-# Per plan §1.3 (M1) and §2.1 (M2 RBAC):
-#   book_id BIGINT FK → books(id) NOT NULL
-#   user_id BIGINT FK → users(id) NOT NULL
-#   role SMALLINT NOT NULL                           # 0=owner, 1=admin, 2=editor, 3=viewer
-#   invited_at TIMESTAMPTZ NOT NULL DEFAULT now()
-#   accepted_at TIMESTAMPTZ NULL                     # NULL ⇒ pending invite (not used at MVP — invites are
-#                                                    # in book_invites; this is for direct-add flows v1.1+)
-#   PRIMARY KEY (book_id, user_id)
-#
-# The role enum maps to the permission matrix in auth/rbac.py.
-# Owner role is granted exactly once per book (= books.owner_id row); demoted/promoted via
-# `BookMemberService.change_role()` which refuses to demote the last owner.
+# book_members — junction table user x book x role. PK (book_id, user_id). role enum in auth/rbac.py.
+from __future__ import annotations
+
+from datetime import datetime
+
+from sqlalchemy import BigInteger, DateTime, ForeignKey, SmallInteger, func
+from sqlalchemy.orm import Mapped, mapped_column
+
+from .base import Base
+
+
+class BookMember(Base):
+    __tablename__ = "book_members"
+
+    book_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("books.id"), primary_key=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.id"), primary_key=True)
+    role: Mapped[int] = mapped_column(
+        SmallInteger, nullable=False
+    )  # 0=owner 1=admin 2=editor 3=viewer
+    invited_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

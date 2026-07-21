@@ -1,19 +1,31 @@
-# notifications_outbox — table-backed outbox for in-app notifications (FinWave pattern).
-#
-# Per plan §1.3 (M1) — schema lands now; drainer is a stretch goal for M4 (in-app delivery only).
-# v1.1 will add WebSocket push from this table; v1.0 just persists for audit.
-#
-#   id BIGSERIAL PRIMARY KEY
-#   user_id BIGINT NOT NULL FK → users(id)
-#   book_id BIGINT NULL FK → books(id)               # NULL ⇒ user-level notification
-#   kind TEXT NOT NULL                               # 'invite_accepted', 'rate_alert' (v1.1), 'low_balance' (v1.1)
-#   payload JSONB NOT NULL                           # type-specific body
-#   delivered_at TIMESTAMPTZ NULL                    # set when in-app inbox marks as read
-#   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-#   attempts SMALLINT NOT NULL DEFAULT 0
-#
-# Index:
-#   (created_at) WHERE delivered_at IS NULL          # partial index for the drain query
-#
-# The 1-second drainer (FinWave's NotificationsService) is NOT implemented at v1.0; the table
-# just stays as an audit log. The drainer lands in v1.1 alongside WebSocket push to the Mini-App.
+# notifications_outbox — table-backed outbox (FinWave pattern). Schema lands now; drainer is v1.1.
+from __future__ import annotations
+
+from datetime import datetime
+from typing import Any
+
+from sqlalchemy import DateTime, ForeignKey, Index, SmallInteger, Text, text
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column
+
+from .base import Base
+from .fields import bigserial_pk
+
+
+class NotificationOutbox(Base):
+    __tablename__ = "notifications_outbox"
+    __table_args__ = (
+        Index(
+            "ix_notifications_outbox_undelivered",
+            "created_at",
+            postgresql_where=text("delivered_at IS NULL"),
+        ),
+    )
+
+    id: Mapped[bigserial_pk]
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    book_id: Mapped[int | None] = mapped_column(ForeignKey("books.id"))
+    kind: Mapped[str] = mapped_column(Text, nullable=False)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    delivered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    attempts: Mapped[int] = mapped_column(SmallInteger, nullable=False, server_default=text("0"))

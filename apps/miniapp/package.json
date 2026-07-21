@@ -9,7 +9,7 @@
     "start": "next start -p 3000",
     "lint": "oxlint --config ../../.oxlintrc.json src/",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run --passWithNoTests"
   },
   "//": "Q5-locked: Money is a string at the wire. `big.js` lands here when the first money endpoint ships (M2).",
   "dependencies": {

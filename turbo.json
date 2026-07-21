@@ -1,20 +1,20 @@
 {
   "$schema": "https://turbo.build/schema.json",
 
-  "//": "Turborepo task graph for the JS/TS side. Python tasks are not orchestrated here — uv handles those.",
-
-  "globalEnv": ["NODE_ENV", "NEXT_PUBLIC_API_BASE_URL", "NEXT_PUBLIC_BOT_USERNAME"],
+  "globalEnv": [
+    "NODE_ENV",
+    "NEXT_PUBLIC_API_BASE_URL",
+    "NEXT_PUBLIC_BOT_USERNAME"
+  ],
 
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
-      "//": "build depends on upstream packages building first; output globs feed Turbo's remote cache."
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
     "dev": {
       "cache": false,
-      "persistent": true,
-      "//": "dev mode: never cache, runs forever, must be parallel."
+      "persistent": true
     },
     "lint": {
       "outputs": []

@@ -1,15 +1,53 @@
+# Originally derived from AiogramBotTemplate (https://github.com/arturboyun/AiogramBotTemplate)
+# Copyright (c) 2024 Artur Boyun. MIT License. See THIRD_PARTY_NOTICES.md.
+#
 # Pydantic-settings shape — single source of truth for runtime config.
 # Read once via @lru_cache get_config(); both api and bot processes consume it.
-#
-# Per plan §1.4 / §1.10 / §4.5 — env var list mirrors `.env.example`:
-#   DOMAIN, ENVIRONMENT, DEBUG
-#   BOT_TOKEN, BOT_USERNAME
-#   JWT_SECRET, JWT_LIFETIME_SECONDS                          (D12: 1800 default)
-#   POSTGRES_DSN
-#   REDIS_DSN
-#   SENTRY_DSN, LOG_LEVEL                                     (D17)
-#   FRANKFURTER_BASE_URL, FX_REFRESH_INTERVAL_SECONDS         (M3)
-#   RESTIC_REPOSITORY, RESTIC_PASSWORD, B2_ACCOUNT_ID, B2_ACCOUNT_KEY  (D18)
-#   NEXT_PUBLIC_API_BASE_URL, NEXT_PUBLIC_BOT_USERNAME        (Mini-App; read by Next.js, not Python)
-#
-# Pattern lifted from research/AiogramBotTemplate/bot/config.py (MIT, Artur Boyun 2024).
+# Env var list mirrors `.env.example`. Fields not read by Python (NEXT_PUBLIC_*, RESTIC/B2)
+# are ignored via `extra="ignore"`.
+from __future__ import annotations
+
+from functools import lru_cache
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+        case_sensitive=True,
+    )
+
+    # --- core ---
+    DOMAIN: str = ""
+    ENVIRONMENT: str = "development"
+    DEBUG: bool = True
+
+    # --- telegram ---
+    BOT_TOKEN: str = ""
+    BOT_USERNAME: str = ""
+
+    # --- jwt (Mini-App auth, D12) ---
+    JWT_SECRET: str = ""
+    JWT_LIFETIME_SECONDS: int = 1800
+
+    # --- postgres / redis ---
+    POSTGRES_DSN: str = (
+        "postgresql+asyncpg://smart_accounting:CHANGEME@localhost:5432/smart_accounting"
+    )
+    REDIS_DSN: str = "redis://localhost:6379/0"
+
+    # --- observability (D17) ---
+    LOG_LEVEL: str = "INFO"
+    SENTRY_DSN: str | None = None
+
+    # --- fx providers (M3; present in .env.example) ---
+    FRANKFURTER_BASE_URL: str = "https://api.frankfurter.dev/v1"
+    FX_REFRESH_INTERVAL_SECONDS: int = 3600
+
+
+@lru_cache
+def get_config() -> Settings:
+    return Settings()

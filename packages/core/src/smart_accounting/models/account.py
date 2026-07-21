@@ -1,17 +1,26 @@
-# accounts — places where money sits. Cash, bank, card, brokerage.
-# Each account is denominated in exactly one currency (fx happens between accounts).
-#
-# Per plan §1.3 (M1) and §2.5 (M2):
-#   id BIGSERIAL PRIMARY KEY
-#   book_id BIGINT NOT NULL FK → books(id)
-#   currency_code TEXT NOT NULL                      # not a FK to currencies(code) because per-book overrides
-#                                                    # complicate the constraint; service-layer validates instead
-#   name TEXT NOT NULL
-#   kind SMALLINT NOT NULL                           # 0=cash, 1=bank, 2=card, 3=brokerage, 4=other
-#   archived BOOLEAN NOT NULL DEFAULT FALSE
-#   opening_balance NUMERIC(20,8) NOT NULL DEFAULT 0  # D5 precision contract
-#   created_at, updated_at
-#
-# Computed balance = opening_balance + signed sum of FxTransaction deltas where
-# this account appears as base_account_id (debit/credit per direction) or quote_account_id.
-# Computed on the fly in M3; cached only if profiling demands it.
+# accounts — places money sits (cash/bank/card/brokerage). One currency each; fx happens between them.
+from __future__ import annotations
+
+from decimal import Decimal
+
+from sqlalchemy import Boolean, ForeignKey, Numeric, SmallInteger, Text, text
+from sqlalchemy.orm import Mapped, mapped_column
+
+from .base import Base
+from .fields import bigserial_pk, currency_code
+
+
+class Account(Base):
+    __tablename__ = "accounts"
+
+    id: Mapped[bigserial_pk]
+    book_id: Mapped[int] = mapped_column(ForeignKey("books.id"), nullable=False)
+    currency_code: Mapped[currency_code]  # not a FK — per-book overrides; service-layer validates
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    kind: Mapped[int] = mapped_column(
+        SmallInteger, nullable=False
+    )  # 0=cash 1=bank 2=card 3=brokerage 4=other
+    archived: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
+    opening_balance: Mapped[Decimal] = mapped_column(
+        Numeric(20, 8), nullable=False, server_default=text("0")
+    )
