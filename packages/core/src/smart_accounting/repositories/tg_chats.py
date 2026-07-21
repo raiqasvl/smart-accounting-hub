@@ -30,6 +30,12 @@ class TgChatsRepo:
             update(TgChat).where(TgChat.chat_id == chat_id).values(active_book_id=active_book_id)
         )
 
+    async def set_active_book_for_user(self, user_id: int, active_book_id: int) -> None:
+        """Point every one of this user's chats at the newly switched-to book (book switch)."""
+        await self._session.execute(
+            update(TgChat).where(TgChat.user_id == user_id).values(active_book_id=active_book_id)
+        )
+
     async def set_last_message_id(self, chat_id: int, message_id: int) -> None:
         await self._session.execute(
             update(TgChat).where(TgChat.chat_id == chat_id).values(last_message_id=message_id)

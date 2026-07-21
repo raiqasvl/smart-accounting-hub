@@ -20,11 +20,18 @@ from smart_accounting.auth.jwt import JwtCodec
 from smart_accounting.common.uow import UoW
 from smart_accounting.config import Settings, get_config
 from smart_accounting.database.engine import build_engine, build_session_factory
+from smart_accounting.repositories.accounts import AccountsRepo
+from smart_accounting.repositories.book_invites import BookInvitesRepo
 from smart_accounting.repositories.book_members import BookMembersRepo
 from smart_accounting.repositories.books import BooksRepo
+from smart_accounting.repositories.currencies import CurrenciesRepo
 from smart_accounting.repositories.tg_chats import TgChatsRepo
 from smart_accounting.repositories.users import UsersRepo
+from smart_accounting.services.account_service import AccountService
 from smart_accounting.services.auth_service import AuthService
+from smart_accounting.services.book_service import BookService
+from smart_accounting.services.currency_service import CurrencyService
+from smart_accounting.services.invite_service import InviteService
 from smart_accounting.services.tg_chat_service import TgChatService
 from smart_accounting.services.user_service import UserService
 
@@ -57,10 +64,17 @@ class DepsProvider(Provider):
     users_repo = provide(UsersRepo, scope=Scope.REQUEST)
     books_repo = provide(BooksRepo, scope=Scope.REQUEST)
     members_repo = provide(BookMembersRepo, scope=Scope.REQUEST)
+    invites_repo = provide(BookInvitesRepo, scope=Scope.REQUEST)
+    accounts_repo = provide(AccountsRepo, scope=Scope.REQUEST)
     tg_chats_repo = provide(TgChatsRepo, scope=Scope.REQUEST)
+    currencies_repo = provide(CurrenciesRepo, scope=Scope.REQUEST)
     user_service = provide(UserService, scope=Scope.REQUEST)
     auth_service = provide(AuthService, scope=Scope.REQUEST)
     tg_chat_service = provide(TgChatService, scope=Scope.REQUEST)
+    currency_service = provide(CurrencyService, scope=Scope.REQUEST)
+    book_service = provide(BookService, scope=Scope.REQUEST)
+    invite_service = provide(InviteService, scope=Scope.REQUEST)
+    account_service = provide(AccountService, scope=Scope.REQUEST)
 
 
 def build_container() -> AsyncContainer:

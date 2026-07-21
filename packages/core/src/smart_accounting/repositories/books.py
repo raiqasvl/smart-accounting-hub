@@ -11,14 +11,42 @@ class BooksRepo:
     def __init__(self, uow: UoW) -> None:
         self._session = uow.session
 
-    async def insert(self, *, owner_id: int, name: str, kind: int, base_currency_code: str) -> Book:
-        book = Book(owner_id=owner_id, name=name, kind=kind, base_currency_code=base_currency_code)
+    async def insert(
+        self,
+        *,
+        owner_id: int,
+        name: str,
+        kind: int,
+        base_currency_code: str,
+        default_language: str = "en",
+    ) -> Book:
+        book = Book(
+            owner_id=owner_id,
+            name=name,
+            kind=kind,
+            base_currency_code=base_currency_code,
+            default_language=default_language,
+        )
         self._session.add(book)
         await self._session.flush()
         return book
 
     async def get(self, book_id: int) -> Book | None:
         return await self._session.get(Book, book_id)
+
+    async def update(
+        self, book_id: int, *, name: str | None = None, archived: bool | None = None
+    ) -> Book | None:
+        """Apply the provided fields (None = leave unchanged). Returns the row, or None if absent."""
+        book = await self._session.get(Book, book_id)
+        if book is None:
+            return None
+        if name is not None:
+            book.name = name
+        if archived is not None:
+            book.archived = archived
+        await self._session.flush()
+        return book
 
     async def primary_for(self, user_id: int) -> Book:
         """The user's default book — the lowest-id book they own (M1 creates exactly one)."""

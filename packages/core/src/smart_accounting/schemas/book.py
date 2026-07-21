@@ -13,3 +13,15 @@ class BookOut(BaseModel):
     kind: int
     base_currency_code: str
     role: int
+
+
+class BookCreateIn(BaseModel):
+    name: str
+    kind: int = 0  # 0=personal 1=family 2=business
+    base_currency_code: str
+    default_language: str = "en"
+
+
+class BookPatchIn(BaseModel):
+    name: str | None = None
+    archived: bool | None = None

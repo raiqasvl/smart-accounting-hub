@@ -1,5 +1,9 @@
-# FastAPI request helpers. M1 has one auth gate: extract + verify the Bearer JWT into Claims.
-# (current_user / current_book_member / require(permission) land in M2 with more endpoints.)
+# FastAPI request helpers. `extract_claims` is the auth gate (Bearer JWT -> Claims).
+#
+# M2 authorization is enforced in the SERVICE layer, not here: each book-scoped service method
+# takes the actor's user_id, resolves their role for the *path* book_id via book_members
+# (raising NotAMember if absent), and calls auth.rbac.require_permission. This keeps tenancy
+# checks next to the DB access and avoids a FastAPI dependency that must reach into Dishka.
 from __future__ import annotations
 
 from fastapi import Request

@@ -19,7 +19,7 @@ from smart_accounting.errors import AppError
 from smart_accounting.ioc import build_container
 from smart_accounting.observability import configure_observability
 
-from .routers import auth, health, me
+from .routers import accounts, auth, books, currencies, health, invites, me
 
 _settings = get_config()
 configure_observability(
@@ -57,7 +57,11 @@ def create_app(container: AsyncContainer | None = None) -> FastAPI:
     api = APIRouter(prefix="/api/v1")
     api.include_router(auth.router)
     api.include_router(me.router)
-    app.include_router(api)  # /api/v1/auth/telegram, /api/v1/me
+    api.include_router(books.router)
+    api.include_router(invites.router)
+    api.include_router(accounts.router)
+    api.include_router(currencies.router)
+    app.include_router(api)  # /api/v1/{auth/telegram, me, books, invites, accounts, currencies}
 
     app.add_exception_handler(AppError, app_error_handler)
     setup_dishka(container=container or build_container(), app=app)

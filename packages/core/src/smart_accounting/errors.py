@@ -36,3 +36,71 @@ class JwtInvalid(AppError):
 class JwtExpired(AppError):
     code = "jwt_expired"
     http_status = 401
+
+
+# --- authorization / tenancy (M2) ---
+
+
+class Forbidden(AppError):
+    code = "forbidden"
+    http_status = 403
+
+
+class NotFound(AppError):
+    code = "not_found"
+    http_status = 404
+
+
+class BookNotFound(NotFound):
+    code = "book_not_found"
+
+
+class NotAMember(AppError):
+    code = "not_a_member"
+    http_status = 403
+
+
+class LastOwner(AppError):
+    code = "last_owner"
+    http_status = 409
+
+
+# --- invites (M2) ---
+
+
+class InviteInvalid(AppError):
+    code = "invite_invalid"
+    http_status = 404
+
+
+class InviteExpired(AppError):
+    code = "invite_expired"
+    http_status = 410
+
+
+class InviteAlreadyUsed(AppError):
+    code = "invite_already_used"
+    http_status = 409
+
+
+class AlreadyMember(AppError):
+    code = "already_member"
+    http_status = 409
+
+
+# --- accounts / currencies (M2) ---
+
+
+class AccountInUse(AppError):
+    code = "account_in_use"
+    http_status = 409
+
+
+class CurrencyUnknown(AppError):
+    code = "currency_unknown"
+    http_status = 422
+
+
+class CurrencyExists(AppError):
+    code = "currency_exists"
+    http_status = 409
