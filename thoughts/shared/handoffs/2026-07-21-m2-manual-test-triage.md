@@ -4,15 +4,22 @@ author: i.gorvier (GitHub raiqasvl)
 repository: smart-accounting-hub
 branch: main
 topic: "M2 manual-test triage — bot + Mini-App are 'raw / not fully functional'; next-session start here"
-status: open
+status: resolved
 ---
 
 # M2 manual-test triage
 
-M2 is code-complete, committed, and pushed (see `2026-07-21-m2-in-progress.md` for the ledger). But
-the user's **real-phone manual test found the bot and Mini-App "still raw, not fully functional."**
-The automated gates are green (102 py tests, mypy, lint, `next build`), so the gaps are in the
-**runtime UX / integration**, not the type-level contract. **Start the next session here.**
+> **RESOLVED 2026-07-21.** The user re-tested the bot + Mini-App on a real phone and reported it is
+> **fine / working end-to-end**. The M2 runtime-UX blocker is **lifted** — M3 is unblocked. The
+> candidate-issue list below is retained as history (some items, e.g. `set_my_commands` and currency
+> pickers, are folded into the M3 bot phase rather than fixed separately). Remaining plans:
+> [M3](../plans/2026-07-21-m3-fx-transactions-weighted-avg.md) ·
+> [M4](../plans/2026-07-21-m4-categories-charts-i18n.md) ·
+> [M5](../plans/2026-07-21-m5-hardening-ops-release.md).
+
+M2 is code-complete, committed, and pushed (see `2026-07-21-m2-in-progress.md` for the ledger). The
+earlier real-phone test had found the bot and Mini-App "still raw"; a follow-up test on 2026-07-21
+confirmed it working. The automated gates are green (102 py tests, mypy, lint, `next build`).
 
 ## FIRST: get the specifics
 No concrete repro was captured before wrap-up. Ask the user (or reproduce on device) exactly what
