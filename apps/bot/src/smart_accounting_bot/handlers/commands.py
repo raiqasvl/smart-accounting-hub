@@ -23,7 +23,14 @@ from smart_accounting.config import get_config
 from smart_accounting.schemas import BookOut, UserOut
 from smart_accounting.services import TgChatService, TgIdentity, UserService
 
-from ..dialogs.states import BooksMenu, CreateAccount, CreateBook, JoinInvite
+from ..dialogs.states import (
+    AvgReport,
+    BooksMenu,
+    CreateAccount,
+    CreateBook,
+    JoinInvite,
+    RecordTrade,
+)
 
 router = Router(name="commands")
 
@@ -150,3 +157,29 @@ async def new_account(
     if await ensure_onboarded(msg, user_service, tg_chats) is None:
         return
     await dialog_manager.start(CreateAccount.currency, mode=StartMode.RESET_STACK)
+
+
+@router.message(Command("trade"))
+@inject
+async def trade(
+    msg: Message,
+    dialog_manager: DialogManager,
+    user_service: FromDishka[UserService],
+    tg_chats: FromDishka[TgChatService],
+) -> None:
+    if await ensure_onboarded(msg, user_service, tg_chats) is None:
+        return
+    await dialog_manager.start(RecordTrade.direction, mode=StartMode.RESET_STACK)
+
+
+@router.message(Command("avg"))
+@inject
+async def avg(
+    msg: Message,
+    dialog_manager: DialogManager,
+    user_service: FromDishka[UserService],
+    tg_chats: FromDishka[TgChatService],
+) -> None:
+    if await ensure_onboarded(msg, user_service, tg_chats) is None:
+        return
+    await dialog_manager.start(AvgReport.direction, mode=StartMode.RESET_STACK)

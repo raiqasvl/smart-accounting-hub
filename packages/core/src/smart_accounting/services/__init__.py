@@ -4,9 +4,12 @@ from .account_service import AccountService
 from .auth_service import AuthService
 from .book_service import BookService
 from .currency_service import CurrencyService
+from .fx_service import FxService
 from .identity import TgIdentity
 from .invite_service import InviteService
+from .report_service import ReportService
 from .tg_chat_service import TgChatService
+from .transaction_service import TransactionService
 from .user_service import UserService
 
 __all__ = [
@@ -14,8 +17,11 @@ __all__ = [
     "AuthService",
     "BookService",
     "CurrencyService",
+    "FxService",
     "InviteService",
+    "ReportService",
     "TgChatService",
     "TgIdentity",
+    "TransactionService",
     "UserService",
 ]

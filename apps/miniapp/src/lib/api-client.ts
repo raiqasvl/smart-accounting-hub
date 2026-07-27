@@ -14,6 +14,10 @@ import type {
   InviteOut,
   MeOut,
   TokenOut,
+  TransactionCreateIn,
+  TransactionOut,
+  TransactionPage,
+  WeightedAvgReportOut,
 } from '@shared/index';
 
 import { getRawInitData } from './telegram';
@@ -190,4 +194,32 @@ export function createInvite(
 
 export function revokeInvite(bookId: number, inviteId: number): Promise<void> {
   return request<void>(`/api/v1/books/${bookId}/invites/${inviteId}`, 'DELETE');
+}
+
+// --- M3: transactions + weighted-average report ---
+
+export function fetchTransactions(bookId: number): Promise<TransactionPage> {
+  return request<TransactionPage>(`/api/v1/books/${bookId}/transactions`);
+}
+
+export function createTransaction(
+  bookId: number,
+  body: TransactionCreateIn
+): Promise<TransactionOut> {
+  return request<TransactionOut>(
+    `/api/v1/books/${bookId}/transactions`,
+    'POST',
+    body
+  );
+}
+
+export function fetchWeightedAvg(
+  bookId: number,
+  quote: string,
+  direction: 'buy' | 'sell'
+): Promise<WeightedAvgReportOut> {
+  const q = new URLSearchParams({ quote, direction }).toString();
+  return request<WeightedAvgReportOut>(
+    `/api/v1/books/${bookId}/reports/weighted-avg-rate?${q}`
+  );
 }

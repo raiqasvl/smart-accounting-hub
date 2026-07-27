@@ -5,21 +5,37 @@
 # module-level `app = create_app()` is what uvicorn imports; tests pass a test container.
 from __future__ import annotations
 
+import asyncio
 import secrets
-from collections.abc import Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
+from contextlib import asynccontextmanager, suppress
 
 from dishka import AsyncContainer
 from dishka.integrations.fastapi import setup_dishka
 from fastapi import APIRouter, FastAPI, Request, Response
 from fastapi.responses import JSONResponse
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from smart_accounting.config import get_config
+from smart_accounting.config import Settings, get_config
 from smart_accounting.errors import AppError
+from smart_accounting.fx.clients import FrankfurterClient
+from smart_accounting.fx.refresh import refresh_loop
 from smart_accounting.ioc import build_container
 from smart_accounting.observability import configure_observability
 
-from .routers import accounts, auth, books, currencies, health, invites, me
+from .routers import (
+    accounts,
+    auth,
+    books,
+    currencies,
+    fx,
+    health,
+    invites,
+    me,
+    reports,
+    transactions,
+)
 
 _settings = get_config()
 configure_observability(
@@ -50,7 +66,33 @@ async def app_error_handler(request: Request, exc: Exception) -> JSONResponse:
 
 
 def create_app(container: AsyncContainer | None = None) -> FastAPI:
-    app = FastAPI(title="smart-accounting-hub API", version="0.1.0")
+    container = container or build_container()
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        # FX rate refresh runs as a lifespan task (no worker container at MVP). Gated by a settings
+        # flag so tests / offline runs don't reach the network.
+        settings = await container.get(Settings)
+        task: asyncio.Task[None] | None = None
+        if settings.FX_REFRESH_ENABLED:
+            sessionmaker = await container.get(async_sessionmaker[AsyncSession])
+            client = await container.get(FrankfurterClient)
+            task = asyncio.create_task(
+                refresh_loop(
+                    sessionmaker=sessionmaker,
+                    client=client,
+                    interval_seconds=settings.FX_REFRESH_INTERVAL_SECONDS,
+                )
+            )
+        try:
+            yield
+        finally:
+            if task is not None:
+                task.cancel()
+                with suppress(asyncio.CancelledError):
+                    await task
+
+    app = FastAPI(title="smart-accounting-hub API", version="0.1.0", lifespan=lifespan)
     app.add_middleware(RequestIdMiddleware)
 
     app.include_router(health.router)  # bare /healthz, /readyz
@@ -61,10 +103,13 @@ def create_app(container: AsyncContainer | None = None) -> FastAPI:
     api.include_router(invites.router)
     api.include_router(accounts.router)
     api.include_router(currencies.router)
-    app.include_router(api)  # /api/v1/{auth/telegram, me, books, invites, accounts, currencies}
+    api.include_router(fx.router)
+    api.include_router(transactions.router)
+    api.include_router(reports.router)
+    app.include_router(api)  # /api/v1/{auth, me, books, invites, accounts, currencies, fx, tx, reports}
 
     app.add_exception_handler(AppError, app_error_handler)
-    setup_dishka(container=container or build_container(), app=app)
+    setup_dishka(container=container, app=app)
     return app
 
 

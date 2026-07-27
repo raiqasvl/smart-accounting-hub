@@ -65,6 +65,14 @@ class FxTransaction(Base):
             "linked_transaction_id",
             postgresql_where=text("linked_transaction_id IS NOT NULL"),
         ),
+        # D28: idempotent trade recording (added in 0003). Partial unique so NULL keys are free.
+        Index(
+            "uq_fx_transactions_book_idempotency",
+            "book_id",
+            "idempotency_key",
+            unique=True,
+            postgresql_where=text("idempotency_key IS NOT NULL"),
+        ),
     )
 
     id: Mapped[bigserial_pk]
@@ -89,3 +97,4 @@ class FxTransaction(Base):
     category_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id"))
     linked_transaction_id: Mapped[int | None] = mapped_column(ForeignKey("fx_transactions.id"))
     archived: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
+    idempotency_key: Mapped[str | None] = mapped_column(Text)

@@ -104,3 +104,30 @@ class CurrencyUnknown(AppError):
 class CurrencyExists(AppError):
     code = "currency_exists"
     http_status = 409
+
+
+# --- transactions (M3) ---
+
+
+class TransactionNotFound(NotFound):
+    code = "transaction_not_found"
+
+
+class AccountNotInBook(AppError):
+    code = "account_not_in_book"
+    http_status = 422
+
+
+class AccountCurrencyMismatch(AppError):
+    code = "account_currency_mismatch"
+    http_status = 422
+
+
+class InvalidAmount(AppError):
+    code = "invalid_amount"
+    http_status = 422
+
+
+class InvalidCursor(AppError):
+    code = "invalid_cursor"
+    http_status = 422

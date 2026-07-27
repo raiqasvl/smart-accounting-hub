@@ -29,3 +29,19 @@ class JoinInvite(StatesGroup):
 class BooksMenu(StatesGroup):
     choose = State()
     done = State()
+
+
+class RecordTrade(StatesGroup):
+    direction = State()
+    quote = State()
+    amount = State()
+    rate = State()
+    confirm = State()
+    done = State()
+
+
+class AvgReport(StatesGroup):
+    direction = State()
+    quote = State()
+    period = State()
+    result = State()

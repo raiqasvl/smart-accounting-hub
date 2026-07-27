@@ -62,6 +62,7 @@ async def client(conn: Any) -> AsyncIterator[AsyncClient]:
                 REDIS_DSN=base.REDIS_DSN,
                 BOT_TOKEN=TEST_BOT_TOKEN,
                 JWT_SECRET=TEST_JWT_SECRET,
+                FX_REFRESH_ENABLED=False,  # never hit the network from tests
             )
 
         @provide(scope=Scope.REQUEST, override=True)

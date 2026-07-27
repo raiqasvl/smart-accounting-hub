@@ -46,6 +46,7 @@ class Settings(BaseSettings):
     # --- fx providers (M3; present in .env.example) ---
     FRANKFURTER_BASE_URL: str = "https://api.frankfurter.dev/v1"
     FX_REFRESH_INTERVAL_SECONDS: int = 3600
+    FX_REFRESH_ENABLED: bool = True  # disable in tests / offline; gates the API lifespan task
 
 
 @lru_cache

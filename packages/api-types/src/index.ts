@@ -20,3 +20,12 @@ export type AccountPatchIn = components['schemas']['AccountPatchIn'];
 export type CurrencyOut = components['schemas']['CurrencyOut'];
 export type InviteOut = components['schemas']['InviteOut'];
 export type InviteCreateIn = components['schemas']['InviteCreateIn'];
+
+// M3 DTOs (FX transactions + weighted-average).
+export type TransactionOut = components['schemas']['TransactionOut'];
+export type TransactionCreateIn = components['schemas']['TransactionCreateIn'];
+export type TransactionPatchIn = components['schemas']['TransactionPatchIn'];
+export type TransactionPage = components['schemas']['TransactionPage'];
+export type WeightedAvgReportOut =
+  components['schemas']['WeightedAvgReportOut'];
+export type FxRateOut = components['schemas']['FxRateOut'];

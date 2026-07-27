@@ -9,18 +9,22 @@ import type {
   AccountPatchIn,
   BookCreateIn,
   InviteCreateIn,
+  TransactionCreateIn,
 } from '@shared/index';
 
 import {
   createAccount,
   createBook,
   createInvite,
+  createTransaction,
   deleteAccount,
   fetchAccounts,
   fetchBooks,
   fetchCurrencies,
   fetchInvites,
   fetchMe,
+  fetchTransactions,
+  fetchWeightedAvg,
   patchAccount,
   revokeInvite,
   switchBook,
@@ -112,5 +116,37 @@ export function useRevokeInvite(bookId: number) {
   return useMutation({
     mutationFn: (inviteId: number) => revokeInvite(bookId, inviteId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['invites', bookId] }),
+  });
+}
+
+// --- M3: transactions + weighted-average ---
+
+export function useTransactions(bookId: number) {
+  return useQuery({
+    queryKey: ['trades', bookId],
+    queryFn: () => fetchTransactions(bookId),
+  });
+}
+
+export function useCreateTransaction(bookId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: TransactionCreateIn) => createTransaction(bookId, body),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['trades', bookId] });
+      void qc.invalidateQueries({ queryKey: ['report', bookId] });
+    },
+  });
+}
+
+export function useWeightedAvg(
+  bookId: number,
+  quote: string,
+  direction: 'buy' | 'sell'
+) {
+  return useQuery({
+    queryKey: ['report', bookId, quote, direction],
+    queryFn: () => fetchWeightedAvg(bookId, quote, direction),
+    enabled: quote !== '',
   });
 }

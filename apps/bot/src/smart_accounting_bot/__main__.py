@@ -13,6 +13,7 @@ from smart_accounting.ioc import build_container
 from smart_accounting.observability import configure_observability
 
 from .main import build_bot, build_dispatcher, setup_dispatcher
+from .menu import set_bot_commands
 
 
 async def _run() -> None:
@@ -26,6 +27,7 @@ async def _run() -> None:
     dp = build_dispatcher()
     setup_dispatcher(dp)
     setup_dishka(container=build_container(), router=dp)
+    await set_bot_commands(bot)
     await dp.start_polling(bot)
 
 

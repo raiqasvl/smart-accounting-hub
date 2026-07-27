@@ -7,6 +7,13 @@ from .currency import CurrencyCreateIn, CurrencyOut
 from .errors import ErrorDetail, ErrorOut
 from .invite import InviteCreateIn, InviteOut, MemberOut
 from .money import Money
+from .report import FxRateOut, WeightedAvgReportOut
+from .transaction import (
+    TransactionCreateIn,
+    TransactionOut,
+    TransactionPage,
+    TransactionPatchIn,
+)
 from .user import UserOut
 
 __all__ = [
@@ -21,11 +28,17 @@ __all__ = [
     "CurrencyOut",
     "ErrorDetail",
     "ErrorOut",
+    "FxRateOut",
     "InviteCreateIn",
     "InviteOut",
     "MeOut",
     "MemberOut",
     "Money",
     "TokenOut",
+    "TransactionCreateIn",
+    "TransactionOut",
+    "TransactionPage",
+    "TransactionPatchIn",
     "UserOut",
+    "WeightedAvgReportOut",
 ]

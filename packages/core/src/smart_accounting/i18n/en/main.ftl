@@ -54,3 +54,23 @@ invite-unavailable = This invite can't be used ({ $reason }).
 books-prompt = Pick a book to switch to:
 books-row = { $name } ({ $role })
 books-switched = 📖 Switched to "{ $name }".
+
+# --- record trade (M3) ---
+trade-direction-prompt = Are you buying or selling?
+trade-dir-sell = 🔻 Sell
+trade-dir-buy = 🔺 Buy
+trade-quote-prompt = Which currency are you trading? Pick one:
+trade-amount-prompt = How much { $quote } is in the trade? e.g. 1000
+trade-rate-prompt = Rate — { $base } per 1 { $quote }? (market hint: { $hint }) e.g. 90.3
+trade-confirm = { $direction } { $amount } { $quote } at { $rate } { $base }/{ $quote }?
+trade-recorded = ✅ Trade recorded. Base amount: { $base }.
+
+# --- weighted-average report (M3) ---
+avg-direction-prompt = Buy or sell side?
+avg-quote-prompt = Which currency?
+avg-period-prompt = Over what period?
+avg-period-30d = Last 30 days
+avg-period-month = This month
+avg-period-all = All time
+avg-result = Weighted avg { $direction } { $quote }: { $rate } ({ $count } trades, { $total } { $quote })
+avg-empty = No { $direction } { $quote } trades in that period yet.

@@ -11,10 +11,12 @@ from __future__ import annotations
 
 from aiogram_dialog import Dialog
 
+from .avg_report import avg_report_dialog
 from .books_menu import books_menu_dialog
 from .create_account import create_account_dialog
 from .create_book import create_book_dialog
 from .join_invite import join_invite_dialog
+from .record_trade import record_trade_dialog
 
 
 def all_dialogs() -> list[Dialog]:
@@ -23,6 +25,8 @@ def all_dialogs() -> list[Dialog]:
         create_account_dialog,
         join_invite_dialog,
         books_menu_dialog,
+        record_trade_dialog,
+        avg_report_dialog,
     ]
 
 

@@ -54,3 +54,23 @@ invite-unavailable = Это приглашение нельзя использо
 books-prompt = Выберите книгу для переключения:
 books-row = { $name } ({ $role })
 books-switched = 📖 Переключено на «{ $name }».
+
+# --- запись сделки (M3) ---
+trade-direction-prompt = Вы покупаете или продаёте?
+trade-dir-sell = 🔻 Продажа
+trade-dir-buy = 🔺 Покупка
+trade-quote-prompt = Какую валюту торгуете? Выберите:
+trade-amount-prompt = Сколько { $quote } в сделке? например 1000
+trade-rate-prompt = Курс — { $base } за 1 { $quote }? (рыночная подсказка: { $hint }) например 90.3
+trade-confirm = { $direction } { $amount } { $quote } по { $rate } { $base }/{ $quote }?
+trade-recorded = ✅ Сделка записана. Сумма в базовой валюте: { $base }.
+
+# --- средневзвешенный курс (M3) ---
+avg-direction-prompt = Сторона: покупка или продажа?
+avg-quote-prompt = Какая валюта?
+avg-period-prompt = За какой период?
+avg-period-30d = Последние 30 дней
+avg-period-month = Этот месяц
+avg-period-all = Всё время
+avg-result = Средневзвеш. { $direction } { $quote }: { $rate } ({ $count } сделок, { $total } { $quote })
+avg-empty = Пока нет сделок { $direction } { $quote } за этот период.

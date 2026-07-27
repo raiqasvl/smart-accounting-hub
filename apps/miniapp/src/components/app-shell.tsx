@@ -7,12 +7,14 @@ import { useState } from 'react';
 
 import { AccountsTab } from '@/components/accounts-tab';
 import { BooksTab } from '@/components/books-tab';
+import { ReportsTab } from '@/components/reports-tab';
 import { SettingsTab } from '@/components/settings-tab';
+import { TradesTab } from '@/components/trades-tab';
 import { Badge, Select, Spinner } from '@/components/ui';
 import { useMe, useSwitchBook } from '@/lib/hooks';
 import { makeTranslate, StringsProvider, useT } from '@/lib/strings';
 
-type Tab = 'books' | 'accounts' | 'settings';
+type Tab = 'books' | 'accounts' | 'trades' | 'reports' | 'settings';
 
 function ErrorCard({ code }: { code: string }) {
   return (
@@ -53,6 +55,8 @@ function Shell({ me }: { me: MeOut }) {
   const tabs: { id: Tab; label: string }[] = [
     { id: 'books', label: t('tab-books') },
     { id: 'accounts', label: t('tab-accounts') },
+    { id: 'trades', label: t('tab-trades') },
+    { id: 'reports', label: t('tab-reports') },
     { id: 'settings', label: t('tab-settings') },
   ];
 
@@ -81,6 +85,14 @@ function Shell({ me }: { me: MeOut }) {
         {tab === 'accounts' && (
           <AccountsTab bookId={active.id} role={active.role} />
         )}
+        {tab === 'trades' && (
+          <TradesTab
+            bookId={active.id}
+            role={active.role}
+            baseCurrency={active.base_currency_code}
+          />
+        )}
+        {tab === 'reports' && <ReportsTab bookId={active.id} />}
         {tab === 'settings' && (
           <SettingsTab bookId={active.id} role={active.role} />
         )}

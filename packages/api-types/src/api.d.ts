@@ -247,6 +247,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/books/{book_id}/fx/latest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Fx Latest */
+        get: operations["fx_latest_api_v1_books__book_id__fx_latest_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/books/{book_id}/transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Transactions */
+        get: operations["list_transactions_api_v1_books__book_id__transactions_get"];
+        put?: never;
+        /** Create Transaction */
+        post: operations["create_transaction_api_v1_books__book_id__transactions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transactions/{tx_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Transaction */
+        delete: operations["delete_transaction_api_v1_transactions__tx_id__delete"];
+        options?: never;
+        head?: never;
+        /** Patch Transaction */
+        patch: operations["patch_transaction_api_v1_transactions__tx_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/books/{book_id}/reports/weighted-avg-rate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Weighted Avg Rate */
+        get: operations["weighted_avg_rate_api_v1_books__book_id__reports_weighted_avg_rate_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -362,6 +432,20 @@ export interface components {
             /** Archived */
             archived: boolean;
         };
+        /** FxRateOut */
+        FxRateOut: {
+            /** Base */
+            base: string;
+            /** Quote */
+            quote: string;
+            /** Rate */
+            rate: string | null;
+            /**
+             * Source
+             * @default frankfurter
+             */
+            source: string;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -415,6 +499,101 @@ export interface components {
             user: components["schemas"]["UserOut"];
             book: components["schemas"]["BookOut"];
         };
+        /** TransactionCreateIn */
+        TransactionCreateIn: {
+            /**
+             * Direction
+             * @enum {string}
+             */
+            direction: "buy" | "sell";
+            /** Base Currency Code */
+            base_currency_code: string;
+            /** Quote Currency Code */
+            quote_currency_code: string;
+            /** Amount Quote */
+            amount_quote: string;
+            /** Rate */
+            rate: string;
+            /** Base Account Id */
+            base_account_id?: number | null;
+            /** Quote Account Id */
+            quote_account_id?: number | null;
+            /**
+             * Fee
+             * @default 0
+             */
+            fee: string;
+            /** Fee Currency Code */
+            fee_currency_code?: string | null;
+            /** Occurred At */
+            occurred_at?: string | null;
+            /** Note */
+            note?: string | null;
+            /** Idempotency Key */
+            idempotency_key?: string | null;
+        };
+        /** TransactionOut */
+        TransactionOut: {
+            /** Id */
+            id: number;
+            /** Book Id */
+            book_id: number;
+            /** Created By User Id */
+            created_by_user_id: number;
+            /** Kind */
+            kind: string;
+            /** Direction */
+            direction: string;
+            /** Base Currency Code */
+            base_currency_code: string;
+            /** Quote Currency Code */
+            quote_currency_code: string;
+            /** Amount Quote */
+            amount_quote: string;
+            /** Rate */
+            rate: string;
+            /** Amount Base */
+            amount_base: string;
+            /** Fee */
+            fee: string;
+            /** Fee Currency Code */
+            fee_currency_code: string | null;
+            /** Base Account Id */
+            base_account_id: number | null;
+            /** Quote Account Id */
+            quote_account_id: number | null;
+            /**
+             * Occurred At
+             * Format: date-time
+             */
+            occurred_at: string;
+            /** Note */
+            note: string | null;
+            /** Archived */
+            archived: boolean;
+        };
+        /** TransactionPage */
+        TransactionPage: {
+            /** Items */
+            items: components["schemas"]["TransactionOut"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Has More */
+            has_more: boolean;
+        };
+        /** TransactionPatchIn */
+        TransactionPatchIn: {
+            /** Amount Quote */
+            amount_quote?: string | null;
+            /** Rate */
+            rate?: string | null;
+            /** Note */
+            note?: string | null;
+            /** Occurred At */
+            occurred_at?: string | null;
+            /** Archived */
+            archived?: boolean | null;
+        };
         /** UserOut */
         UserOut: {
             /** Id */
@@ -444,6 +623,25 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** WeightedAvgReportOut */
+        WeightedAvgReportOut: {
+            /** Book Id */
+            book_id: number;
+            /** Quote Currency Code */
+            quote_currency_code: string;
+            /** Direction */
+            direction: string;
+            /** Weighted Avg Rate */
+            weighted_avg_rate: string | null;
+            /** Sample Count */
+            sample_count: number;
+            /** Sum Amount Quote */
+            sum_amount_quote: string;
+            /** Period From */
+            period_from: string | null;
+            /** Period To */
+            period_to: string | null;
         };
     };
     responses: never;
@@ -1019,6 +1217,219 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CurrencyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    fx_latest_api_v1_books__book_id__fx_latest_get: {
+        parameters: {
+            query: {
+                base: string;
+                quote: string;
+            };
+            header?: never;
+            path: {
+                book_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FxRateOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_transactions_api_v1_books__book_id__transactions_get: {
+        parameters: {
+            query?: {
+                direction?: ("buy" | "sell") | null;
+                quote?: string | null;
+                account_id?: number | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                archived?: boolean;
+                cursor?: string | null;
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                book_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_transaction_api_v1_books__book_id__transactions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                book_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransactionCreateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_transaction_api_v1_transactions__tx_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tx_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: number;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_transaction_api_v1_transactions__tx_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tx_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransactionPatchIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    weighted_avg_rate_api_v1_books__book_id__reports_weighted_avg_rate_get: {
+        parameters: {
+            query: {
+                quote: string;
+                direction: "buy" | "sell";
+                date_from?: string | null;
+                date_to?: string | null;
+            };
+            header?: never;
+            path: {
+                book_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WeightedAvgReportOut"];
                 };
             };
             /** @description Validation Error */
