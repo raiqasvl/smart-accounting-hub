@@ -317,10 +317,125 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/books/{book_id}/reports/account-balance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Account Balance */
+        get: operations["account_balance_api_v1_books__book_id__reports_account_balance_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/books/{book_id}/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Categories */
+        get: operations["list_categories_api_v1_books__book_id__categories_get"];
+        put?: never;
+        /** Create Category */
+        post: operations["create_category_api_v1_books__book_id__categories_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/categories/{category_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Category */
+        delete: operations["delete_category_api_v1_categories__category_id__delete"];
+        options?: never;
+        head?: never;
+        /** Patch Category */
+        patch: operations["patch_category_api_v1_categories__category_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/categories/{category_id}/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Move Category */
+        post: operations["move_category_api_v1_categories__category_id__move_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/books/{book_id}/transfers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Transfer */
+        post: operations["create_transfer_api_v1_books__book_id__transfers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/books/{book_id}/fx-conversions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Fx Conversion */
+        post: operations["create_fx_conversion_api_v1_books__book_id__fx_conversions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AccountBalanceSeriesOut */
+        AccountBalanceSeriesOut: {
+            /** Account Id */
+            account_id: number;
+            /** Currency Code */
+            currency_code: string;
+            /** Opening Balance */
+            opening_balance: string;
+            /** Points */
+            points: components["schemas"]["BalancePointOut"][];
+        };
         /** AccountCreateIn */
         AccountCreateIn: {
             /** Currency Code */
@@ -364,6 +479,16 @@ export interface components {
             /** Init Data */
             init_data: string;
         };
+        /** BalancePointOut */
+        BalancePointOut: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Balance */
+            balance: string;
+        };
         /** BookCreateIn */
         BookCreateIn: {
             /** Name */
@@ -401,6 +526,53 @@ export interface components {
             /** Archived */
             archived?: boolean | null;
         };
+        /** CategoryCreateIn */
+        CategoryCreateIn: {
+            /** Name */
+            name: string;
+            /**
+             * Kind
+             * @default 1
+             */
+            kind: number;
+            /** Parent Id */
+            parent_id?: number | null;
+            /** Description */
+            description?: string | null;
+        };
+        /** CategoryMoveIn */
+        CategoryMoveIn: {
+            /** Parent Id */
+            parent_id?: number | null;
+        };
+        /** CategoryOut */
+        CategoryOut: {
+            /** Id */
+            id: number;
+            /** Book Id */
+            book_id: number;
+            /** Parents Tree */
+            parents_tree: string;
+            /** Depth */
+            depth: number;
+            /** Kind */
+            kind: number;
+            /** Name */
+            name: string;
+            /** Description */
+            description: string | null;
+            /** Archived */
+            archived: boolean;
+        };
+        /** CategoryPatchIn */
+        CategoryPatchIn: {
+            /** Name */
+            name?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Archived */
+            archived?: boolean | null;
+        };
         /** CurrencyCreateIn */
         CurrencyCreateIn: {
             /** Code */
@@ -431,6 +603,25 @@ export interface components {
             kind: number;
             /** Archived */
             archived: boolean;
+        };
+        /** FxConversionCreateIn */
+        FxConversionCreateIn: {
+            /** From Account Id */
+            from_account_id: number;
+            /** To Account Id */
+            to_account_id: number;
+            /** Amount */
+            amount: string;
+            /** Rate */
+            rate: string;
+            /** Occurred At */
+            occurred_at?: string | null;
+            /** Note */
+            note?: string | null;
+            /** Category Id */
+            category_id?: number | null;
+            /** Idempotency Key */
+            idempotency_key?: string | null;
         };
         /** FxRateOut */
         FxRateOut: {
@@ -529,6 +720,8 @@ export interface components {
             occurred_at?: string | null;
             /** Note */
             note?: string | null;
+            /** Category Id */
+            category_id?: number | null;
             /** Idempotency Key */
             idempotency_key?: string | null;
         };
@@ -569,6 +762,8 @@ export interface components {
             occurred_at: string;
             /** Note */
             note: string | null;
+            /** Category Id */
+            category_id: number | null;
             /** Archived */
             archived: boolean;
         };
@@ -593,6 +788,23 @@ export interface components {
             occurred_at?: string | null;
             /** Archived */
             archived?: boolean | null;
+        };
+        /** TransferCreateIn */
+        TransferCreateIn: {
+            /** From Account Id */
+            from_account_id: number;
+            /** To Account Id */
+            to_account_id: number;
+            /** Amount */
+            amount: string;
+            /** Occurred At */
+            occurred_at?: string | null;
+            /** Note */
+            note?: string | null;
+            /** Category Id */
+            category_id?: number | null;
+            /** Idempotency Key */
+            idempotency_key?: string | null;
         };
         /** UserOut */
         UserOut: {
@@ -1430,6 +1642,282 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WeightedAvgReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    account_balance_api_v1_books__book_id__reports_account_balance_get: {
+        parameters: {
+            query: {
+                account_id: number;
+                date_from?: string | null;
+                date_to?: string | null;
+            };
+            header?: never;
+            path: {
+                book_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountBalanceSeriesOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_categories_api_v1_books__book_id__categories_get: {
+        parameters: {
+            query?: {
+                include_archived?: boolean;
+            };
+            header?: never;
+            path: {
+                book_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_category_api_v1_books__book_id__categories_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                book_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CategoryCreateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_category_api_v1_categories__category_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                category_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: number;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_category_api_v1_categories__category_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                category_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CategoryPatchIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    move_category_api_v1_categories__category_id__move_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                category_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CategoryMoveIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_transfer_api_v1_books__book_id__transfers_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                book_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransferCreateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_fx_conversion_api_v1_books__book_id__fx_conversions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                book_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FxConversionCreateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionOut"];
                 };
             };
             /** @description Validation Error */

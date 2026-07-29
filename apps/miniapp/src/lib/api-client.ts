@@ -4,11 +4,16 @@
 // lives in memory with a sessionStorage mirror; on 401 we clear it and re-post fresh initData
 // (D12 refresh model), then retry once. Errors become ApiError (the D24 {error:{code,params}}).
 import type {
+  AccountBalanceSeriesOut,
   AccountCreateIn,
   AccountOut,
   AccountPatchIn,
   BookCreateIn,
   BookOut,
+  CategoryCreateIn,
+  CategoryMoveIn,
+  CategoryOut,
+  CategoryPatchIn,
   CurrencyOut,
   InviteCreateIn,
   InviteOut,
@@ -17,6 +22,7 @@ import type {
   TransactionCreateIn,
   TransactionOut,
   TransactionPage,
+  TransferCreateIn,
   WeightedAvgReportOut,
 } from '@shared/index';
 
@@ -222,4 +228,76 @@ export function fetchWeightedAvg(
   return request<WeightedAvgReportOut>(
     `/api/v1/books/${bookId}/reports/weighted-avg-rate?${q}`
   );
+}
+
+// --- M4: categories, movements, balance series ---
+
+export function fetchCategories(bookId: number): Promise<CategoryOut[]> {
+  return request<CategoryOut[]>(`/api/v1/books/${bookId}/categories`);
+}
+
+export function createCategory(
+  bookId: number,
+  body: CategoryCreateIn
+): Promise<CategoryOut> {
+  return request<CategoryOut>(
+    `/api/v1/books/${bookId}/categories`,
+    'POST',
+    body
+  );
+}
+
+export function patchCategory(
+  categoryId: number,
+  body: CategoryPatchIn
+): Promise<CategoryOut> {
+  return request<CategoryOut>(
+    `/api/v1/categories/${categoryId}`,
+    'PATCH',
+    body
+  );
+}
+
+export function moveCategory(
+  categoryId: number,
+  body: CategoryMoveIn
+): Promise<CategoryOut> {
+  return request<CategoryOut>(
+    `/api/v1/categories/${categoryId}/move`,
+    'POST',
+    body
+  );
+}
+
+export function deleteCategory(categoryId: number): Promise<void> {
+  return request<void>(`/api/v1/categories/${categoryId}`, 'DELETE');
+}
+
+export function createTransfer(
+  bookId: number,
+  body: TransferCreateIn
+): Promise<TransactionOut> {
+  return request<TransactionOut>(
+    `/api/v1/books/${bookId}/transfers`,
+    'POST',
+    body
+  );
+}
+
+export function fetchAccountBalance(
+  bookId: number,
+  accountId: number
+): Promise<AccountBalanceSeriesOut> {
+  return request<AccountBalanceSeriesOut>(
+    `/api/v1/books/${bookId}/reports/account-balance?account_id=${accountId}`
+  );
+}
+
+export async function downloadTransactionsCsv(bookId: number): Promise<Blob> {
+  // Not `request<T>`: the body is CSV, not JSON — but it still needs the bearer + 401 retry.
+  const res = await authedFetch(
+    `/api/v1/books/${bookId}/transactions/export.csv`
+  );
+  if (!res.ok) throw await toApiError(res);
+  return res.blob();
 }

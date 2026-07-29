@@ -28,6 +28,7 @@ from ..dialogs.states import (
     BooksMenu,
     CreateAccount,
     CreateBook,
+    InternalTransfer,
     JoinInvite,
     RecordTrade,
 )
@@ -170,6 +171,19 @@ async def trade(
     if await ensure_onboarded(msg, user_service, tg_chats) is None:
         return
     await dialog_manager.start(RecordTrade.direction, mode=StartMode.RESET_STACK)
+
+
+@router.message(Command("transfer"))
+@inject
+async def transfer(
+    msg: Message,
+    dialog_manager: DialogManager,
+    user_service: FromDishka[UserService],
+    tg_chats: FromDishka[TgChatService],
+) -> None:
+    if await ensure_onboarded(msg, user_service, tg_chats) is None:
+        return
+    await dialog_manager.start(InternalTransfer.from_account, mode=StartMode.RESET_STACK)
 
 
 @router.message(Command("avg"))

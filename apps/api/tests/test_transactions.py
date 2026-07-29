@@ -120,6 +120,58 @@ async def test_fx_latest_hint_is_null_without_rates(
     assert resp.json() == {"base": "RUB", "quote": "USD", "rate": None, "source": "frankfurter"}
 
 
+async def test_csv_export_has_stable_columns(
+    client: AsyncClient, login: Callable[..., Any]
+) -> None:
+    owner = await login(996000010)
+    book_id = owner["book"]["id"]
+    category = await client.post(
+        f"/api/v1/books/{book_id}/categories",
+        headers=owner["headers"],
+        json={"name": "Trading", "kind": 2},
+    )
+    await client.post(
+        f"/api/v1/books/{book_id}/transactions",
+        headers=owner["headers"],
+        json=_sell(category_id=category.json()["id"]),
+    )
+
+    resp = await client.get(
+        f"/api/v1/books/{book_id}/transactions/export.csv", headers=owner["headers"]
+    )
+    assert resp.status_code == 200
+    assert resp.headers["content-type"].startswith("text/csv")
+    assert "attachment" in resp.headers["content-disposition"]
+
+    lines = resp.text.strip().splitlines()
+    assert lines[0] == (
+        "id,occurred_at,kind,direction,base_currency_code,quote_currency_code,"
+        "amount_quote,rate,amount_base,fee,fee_currency_code,base_account,"
+        "quote_account,category,note"
+    )
+    assert len(lines) == 2
+    row = lines[1].split(",")
+    assert row[2] == "plain_cash"
+    assert row[3] == "sell"
+    assert row[6] == "1000.00000000"  # money keeps its decimal-string form
+    assert row[13] == "Trading"  # category resolved to its name
+
+
+async def test_viewer_can_export(
+    client: AsyncClient, login: Callable[..., Any], db: AsyncSession
+) -> None:
+    owner = await login(996000011)
+    viewer = await login(996000012)
+    book_id = owner["book"]["id"]
+    db.add(BookMember(book_id=book_id, user_id=viewer["user"]["id"], role=int(Role.VIEWER)))
+    await db.commit()
+
+    resp = await client.get(
+        f"/api/v1/books/{book_id}/transactions/export.csv", headers=viewer["headers"]
+    )
+    assert resp.status_code == 200  # D-M4-6: export is read-only, so tx.read is enough
+
+
 async def test_non_member_cannot_list(client: AsyncClient, login: Callable[..., Any]) -> None:
     owner = await login(996000006)
     outsider = await login(996000007)

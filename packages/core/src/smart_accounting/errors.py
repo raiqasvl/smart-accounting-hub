@@ -131,3 +131,30 @@ class InvalidAmount(AppError):
 class InvalidCursor(AppError):
     code = "invalid_cursor"
     http_status = 422
+
+
+class InvalidTransfer(AppError):
+    code = "invalid_transfer"
+    http_status = 422
+
+
+# --- categories (M4) ---
+
+
+class CategoryNotFound(NotFound):
+    code = "category_not_found"
+
+
+class CategoryHasChildren(AppError):
+    code = "category_has_children"
+    http_status = 409
+
+
+class CategoryInUse(AppError):
+    code = "category_in_use"
+    http_status = 409
+
+
+class InvalidCategoryParent(AppError):
+    code = "invalid_category_parent"
+    http_status = 422

@@ -19,6 +19,7 @@ from smart_accounting.services import BookService, CurrencyService, FxService, T
 
 from .common import btn_labels, i18n_of, resolve_actor, service
 from .states import RecordTrade
+from .widgets import category_options
 
 _DIRECTIONS: list[tuple[str, str]] = [("sell", "trade-dir-sell"), ("buy", "trade-dir-buy")]
 
@@ -51,6 +52,16 @@ async def _on_rate(
     await manager.next()
 
 
+async def _on_category(cb: CallbackQuery, _w: Any, manager: DialogManager, item_id: str) -> None:
+    manager.dialog_data["category_id"] = int(item_id)
+    await manager.next()
+
+
+async def _skip_category(cb: CallbackQuery, _b: Button, manager: DialogManager) -> None:
+    manager.dialog_data.pop("category_id", None)
+    await manager.next()
+
+
 async def _on_confirm(cb: CallbackQuery, _b: Button, manager: DialogManager) -> None:
     i18n = i18n_of(manager)
     actor = await resolve_actor(manager)
@@ -66,6 +77,7 @@ async def _on_confirm(cb: CallbackQuery, _b: Button, manager: DialogManager) -> 
             quote_currency_code=data["quote"],
             amount_quote=data["amount"],
             rate=data["rate"],
+            category_id=data.get("category_id"),
             idempotency_key=data["idem"],
         )
         tx, _replayed = await txs.record(actor.book_id, actor.user_id, dto)
@@ -128,6 +140,17 @@ async def _rate_getter(dialog_manager: DialogManager, **_: Any) -> dict[str, Any
             hint = format(fx_hint.rate, ".4f")
     return {
         "prompt": i18n.get("trade-rate-prompt", base=base, quote=data.get("quote", ""), hint=hint),
+        **btn_labels(i18n),
+    }
+
+
+async def _category_getter(dialog_manager: DialogManager, **_: Any) -> dict[str, Any]:
+    manager = dialog_manager
+    i18n = i18n_of(manager)
+    return {
+        "prompt": i18n.get("trade-category-prompt"),
+        "categories": await category_options(manager),
+        "skip_label": i18n.get("btn-skip"),
         **btn_labels(i18n),
     }
 
@@ -206,6 +229,25 @@ record_trade_dialog = Dialog(
         Back(Format("{back_label}")),
         state=RecordTrade.rate,
         getter=_rate_getter,
+    ),
+    Window(
+        Format("{prompt}"),
+        ScrollingGroup(
+            Select(
+                Format("{item[1]}"),
+                id="trade_category",
+                item_id_getter=lambda item: item[0],
+                items="categories",
+                on_click=_on_category,
+            ),
+            id="trade_category_sg",
+            width=2,
+            height=6,
+        ),
+        Button(Format("{skip_label}"), id="trade_skip_category", on_click=_skip_category),
+        Back(Format("{back_label}")),
+        state=RecordTrade.category,
+        getter=_category_getter,
     ),
     Window(
         Format("{prompt}"),

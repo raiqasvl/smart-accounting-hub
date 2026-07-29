@@ -29,3 +29,14 @@ export type TransactionPage = components['schemas']['TransactionPage'];
 export type WeightedAvgReportOut =
   components['schemas']['WeightedAvgReportOut'];
 export type FxRateOut = components['schemas']['FxRateOut'];
+
+// M4 DTOs (categories, movements, balance series).
+export type CategoryOut = components['schemas']['CategoryOut'];
+export type CategoryCreateIn = components['schemas']['CategoryCreateIn'];
+export type CategoryPatchIn = components['schemas']['CategoryPatchIn'];
+export type CategoryMoveIn = components['schemas']['CategoryMoveIn'];
+export type TransferCreateIn = components['schemas']['TransferCreateIn'];
+export type FxConversionCreateIn =
+  components['schemas']['FxConversionCreateIn'];
+export type AccountBalanceSeriesOut =
+  components['schemas']['AccountBalanceSeriesOut'];

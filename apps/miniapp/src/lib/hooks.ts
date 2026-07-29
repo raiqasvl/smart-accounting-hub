@@ -8,24 +8,35 @@ import type {
   AccountCreateIn,
   AccountPatchIn,
   BookCreateIn,
+  CategoryCreateIn,
+  CategoryMoveIn,
+  CategoryPatchIn,
   InviteCreateIn,
   TransactionCreateIn,
+  TransferCreateIn,
 } from '@shared/index';
 
 import {
   createAccount,
   createBook,
+  createCategory,
   createInvite,
   createTransaction,
+  createTransfer,
   deleteAccount,
+  deleteCategory,
+  fetchAccountBalance,
   fetchAccounts,
   fetchBooks,
+  fetchCategories,
   fetchCurrencies,
   fetchInvites,
   fetchMe,
   fetchTransactions,
   fetchWeightedAvg,
+  moveCategory,
   patchAccount,
+  patchCategory,
   revokeInvite,
   switchBook,
 } from './api-client';
@@ -148,5 +159,67 @@ export function useWeightedAvg(
     queryKey: ['report', bookId, quote, direction],
     queryFn: () => fetchWeightedAvg(bookId, quote, direction),
     enabled: quote !== '',
+  });
+}
+
+// --- M4: categories, movements, balance series ---
+
+export function useCategories(bookId: number) {
+  return useQuery({
+    queryKey: ['categories', bookId],
+    queryFn: () => fetchCategories(bookId),
+  });
+}
+
+export function useCreateCategory(bookId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: CategoryCreateIn) => createCategory(bookId, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['categories', bookId] }),
+  });
+}
+
+export function usePatchCategory(bookId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, body }: { id: number; body: CategoryPatchIn }) =>
+      patchCategory(id, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['categories', bookId] }),
+  });
+}
+
+export function useMoveCategory(bookId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, body }: { id: number; body: CategoryMoveIn }) =>
+      moveCategory(id, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['categories', bookId] }),
+  });
+}
+
+export function useDeleteCategory(bookId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => deleteCategory(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['categories', bookId] }),
+  });
+}
+
+export function useCreateTransfer(bookId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: TransferCreateIn) => createTransfer(bookId, body),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['trades', bookId] });
+      void qc.invalidateQueries({ queryKey: ['balance', bookId] });
+    },
+  });
+}
+
+export function useAccountBalance(bookId: number, accountId: number | null) {
+  return useQuery({
+    queryKey: ['balance', bookId, accountId],
+    queryFn: () => fetchAccountBalance(bookId, accountId as number),
+    enabled: accountId !== null,
   });
 }

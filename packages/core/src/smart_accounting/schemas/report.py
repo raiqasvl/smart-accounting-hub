@@ -26,3 +26,16 @@ class FxRateOut(BaseModel):
     quote: str
     rate: Money | None
     source: str = "frankfurter"
+
+
+class BalancePointOut(BaseModel):
+    at: datetime
+    balance: Money
+
+
+class AccountBalanceSeriesOut(BaseModel):
+    # Running balance for one account: opening_balance plus each leg that touches it, in order.
+    account_id: int
+    currency_code: str
+    opening_balance: Money
+    points: list[BalancePointOut]

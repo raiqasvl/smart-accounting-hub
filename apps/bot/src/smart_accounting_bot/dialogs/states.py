@@ -36,6 +36,15 @@ class RecordTrade(StatesGroup):
     quote = State()
     amount = State()
     rate = State()
+    category = State()
+    confirm = State()
+    done = State()
+
+
+class InternalTransfer(StatesGroup):
+    from_account = State()
+    to_account = State()
+    amount = State()
     confirm = State()
     done = State()
 

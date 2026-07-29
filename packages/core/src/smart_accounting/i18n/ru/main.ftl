@@ -10,6 +10,7 @@ btn-back = ◀️ Назад
 btn-cancel = ✖️ Отмена
 btn-close = Закрыть
 btn-accept = ✅ Присоединиться
+btn-skip = Пропустить
 
 # --- общие ошибки ---
 error-no-book = Пока нет активной книги. Сначала отправьте /start.
@@ -74,3 +75,14 @@ avg-period-month = Этот месяц
 avg-period-all = Всё время
 avg-result = Средневзвеш. { $direction } { $quote }: { $rate } ({ $count } сделок, { $total } { $quote })
 avg-empty = Пока нет сделок { $direction } { $quote } за этот период.
+
+# --- категории (M4) ---
+trade-category-prompt = Категория? Выберите или пропустите.
+category-none = (без категории)
+
+# --- перевод между счетами (M4) ---
+transfer-from-prompt = С какого счёта перевести?
+transfer-to-prompt = На какой счёт? (показаны счета в { $currency })
+transfer-amount-prompt = Сколько { $currency }? например 250
+transfer-confirm = Перевести { $amount } { $currency } со счёта «{ $source }» на «{ $target }»?
+transfer-done = 🔁 Переведено { $amount } { $currency } на «{ $target }».

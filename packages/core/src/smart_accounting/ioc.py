@@ -26,6 +26,7 @@ from smart_accounting.repositories.accounts import AccountsRepo
 from smart_accounting.repositories.book_invites import BookInvitesRepo
 from smart_accounting.repositories.book_members import BookMembersRepo
 from smart_accounting.repositories.books import BooksRepo
+from smart_accounting.repositories.categories import CategoriesRepo
 from smart_accounting.repositories.currencies import CurrenciesRepo
 from smart_accounting.repositories.exchange_rates import ExchangeRatesRepo
 from smart_accounting.repositories.reports import ReportsRepo
@@ -35,6 +36,7 @@ from smart_accounting.repositories.users import UsersRepo
 from smart_accounting.services.account_service import AccountService
 from smart_accounting.services.auth_service import AuthService
 from smart_accounting.services.book_service import BookService
+from smart_accounting.services.category_service import CategoryService
 from smart_accounting.services.currency_service import CurrencyService
 from smart_accounting.services.fx_service import FxService
 from smart_accounting.services.invite_service import InviteService
@@ -86,6 +88,7 @@ class DepsProvider(Provider):
     accounts_repo = provide(AccountsRepo, scope=Scope.REQUEST)
     tg_chats_repo = provide(TgChatsRepo, scope=Scope.REQUEST)
     currencies_repo = provide(CurrenciesRepo, scope=Scope.REQUEST)
+    categories_repo = provide(CategoriesRepo, scope=Scope.REQUEST)
     transactions_repo = provide(TransactionsRepo, scope=Scope.REQUEST)
     exchange_rates_repo = provide(ExchangeRatesRepo, scope=Scope.REQUEST)
     reports_repo = provide(ReportsRepo, scope=Scope.REQUEST)
@@ -99,6 +102,7 @@ class DepsProvider(Provider):
     transaction_service = provide(TransactionService, scope=Scope.REQUEST)
     report_service = provide(ReportService, scope=Scope.REQUEST)
     fx_service = provide(FxService, scope=Scope.REQUEST)
+    category_service = provide(CategoryService, scope=Scope.REQUEST)
 
 
 def build_container() -> AsyncContainer:

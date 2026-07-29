@@ -1,13 +1,17 @@
 # FX transactions surface. No future-annotations import (DishkaRoute needs concrete response types).
 import base64
 import binascii
+import csv
+import io
 import json
+from collections.abc import Iterator
 from datetime import datetime
 from typing import Literal
 
 from dishka import FromDishka
 from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Request, Response
+from fastapi.responses import StreamingResponse
 
 from smart_accounting.auth.jwt import JwtCodec
 from smart_accounting.errors import InvalidCursor
@@ -22,6 +26,25 @@ from smart_accounting.services.transaction_service import TransactionService
 from ..deps import extract_claims
 
 router = APIRouter(tags=["transactions"], route_class=DishkaRoute)
+
+# Stable column order — downstream spreadsheets/scripts rely on it, so append, never reorder.
+_CSV_COLUMNS = (
+    "id",
+    "occurred_at",
+    "kind",
+    "direction",
+    "base_currency_code",
+    "quote_currency_code",
+    "amount_quote",
+    "rate",
+    "amount_base",
+    "fee",
+    "fee_currency_code",
+    "base_account",
+    "quote_account",
+    "category",
+    "note",
+)
 
 
 def _encode_cursor(tx: TransactionOut) -> str:
@@ -89,6 +112,43 @@ async def list_transactions(
     items = rows[:page_size]
     next_cursor = _encode_cursor(items[-1]) if has_more and items else None
     return TransactionPage(items=items, next_cursor=next_cursor, has_more=has_more)
+
+
+@router.get("/books/{book_id}/transactions/export.csv")
+async def export_transactions_csv(
+    book_id: int,
+    request: Request,
+    jwt: FromDishka[JwtCodec],
+    transaction_service: FromDishka[TransactionService],
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+) -> StreamingResponse:
+    claims = extract_claims(request, jwt)
+    rows = await transaction_service.export_rows(book_id, claims.user_id, date_from, date_to)
+
+    def lines() -> Iterator[str]:
+        buffer = io.StringIO()
+        writer = csv.writer(buffer)
+        writer.writerow(_CSV_COLUMNS)
+        yield _drain(buffer)
+        for row in rows:
+            # Money serializes to its decimal string (D23), so the CSV matches the API byte for byte.
+            data = row.model_dump(mode="json")
+            writer.writerow([data[column] if data[column] is not None else "" for column in _CSV_COLUMNS])
+            yield _drain(buffer)
+
+    return StreamingResponse(
+        lines(),
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="transactions-book-{book_id}.csv"'},
+    )
+
+
+def _drain(buffer: io.StringIO) -> str:
+    chunk = buffer.getvalue()
+    buffer.seek(0)
+    buffer.truncate(0)
+    return chunk
 
 
 @router.patch("/transactions/{tx_id}")

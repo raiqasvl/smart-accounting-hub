@@ -14,6 +14,7 @@ import {
   YAxis,
 } from 'recharts';
 
+import { AccountBalanceChart } from '@/components/account-balance-chart';
 import { Card, Field, Select, Spinner } from '@/components/ui';
 import { useCurrencies, useTransactions, useWeightedAvg } from '@/lib/hooks';
 import { formatMoney, formatRate } from '@/lib/money';
@@ -132,6 +133,8 @@ export function ReportsTab({ bookId }: { bookId: number }) {
           </div>
         </Card>
       ) : null}
+
+      <AccountBalanceChart bookId={bookId} />
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 
+import { CategoriesTab } from '@/components/categories-tab';
 import { Badge, Button, Card, Field, Select, Spinner } from '@/components/ui';
 import { useCreateInvite, useInvites, useRevokeInvite } from '@/lib/hooks';
 import { useT } from '@/lib/strings';
@@ -105,6 +106,10 @@ export function SettingsTab({
           ))}
         </>
       )}
+
+      <div className="mt-6 border-t border-border pt-6">
+        <CategoriesTab bookId={bookId} role={role} />
+      </div>
     </div>
   );
 }

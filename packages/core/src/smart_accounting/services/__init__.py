@@ -3,6 +3,7 @@
 from .account_service import AccountService
 from .auth_service import AuthService
 from .book_service import BookService
+from .category_service import CategoryService
 from .currency_service import CurrencyService
 from .fx_service import FxService
 from .identity import TgIdentity
@@ -16,6 +17,7 @@ __all__ = [
     "AccountService",
     "AuthService",
     "BookService",
+    "CategoryService",
     "CurrencyService",
     "FxService",
     "InviteService",

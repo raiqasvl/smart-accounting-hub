@@ -33,7 +33,8 @@ class TransactionsRepo:
         note: str | None,
         base_account_id: int | None,
         quote_account_id: int | None,
-        idempotency_key: str | None,
+        category_id: int | None = None,
+        idempotency_key: str | None = None,
     ) -> FxTransaction:
         tx = FxTransaction(
             book_id=book_id,
@@ -51,6 +52,7 @@ class TransactionsRepo:
             note=note,
             base_account_id=base_account_id,
             quote_account_id=quote_account_id,
+            category_id=category_id,
             idempotency_key=idempotency_key,
         )
         self._session.add(tx)

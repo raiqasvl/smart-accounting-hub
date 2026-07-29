@@ -15,10 +15,12 @@ import {
   Spinner,
 } from '@/components/ui';
 import {
+  useCategories,
   useCreateTransaction,
   useCurrencies,
   useTransactions,
 } from '@/lib/hooks';
+import { downloadTransactionsCsv } from '@/lib/api-client';
 import { formatMoney, formatRate } from '@/lib/money';
 import { useT } from '@/lib/strings';
 
@@ -37,12 +39,14 @@ export function TradesTab({
 
   const trades = useTransactions(bookId);
   const currencies = useCurrencies(bookId);
+  const categories = useCategories(bookId);
   const create = useCreateTransaction(bookId);
 
   const [direction, setDirection] = useState<'sell' | 'buy'>('sell');
   const [quote, setQuote] = useState('');
   const [amount, setAmount] = useState('');
   const [rate, setRate] = useState('');
+  const [categoryId, setCategoryId] = useState('');
 
   useEffect(() => {
     if (!quote && currencies.data?.length) setQuote(currencies.data[0].code);
@@ -58,6 +62,7 @@ export function TradesTab({
         amount_quote: amount.trim(),
         rate: rate.trim(),
         fee: '0',
+        category_id: categoryId === '' ? null : Number(categoryId),
         idempotency_key: crypto.randomUUID(),
       },
       {
@@ -70,15 +75,30 @@ export function TradesTab({
     );
   };
 
+  const exportCsv = async () => {
+    const blob = await downloadTransactionsCsv(bookId);
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `transactions-book-${bookId}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold">{t('trades-title')}</h1>
-        {canWrite ? (
-          <Button size="sm" onClick={() => setOpen(true)}>
-            + {t('trades-new')}
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => void exportCsv()}>
+            {t('trades-export')}
           </Button>
-        ) : null}
+          {canWrite ? (
+            <Button size="sm" onClick={() => setOpen(true)}>
+              + {t('trades-new')}
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       {trades.isLoading ? <Spinner /> : null}
@@ -143,6 +163,20 @@ export function TradesTab({
               value={rate}
               onChange={(e) => setRate(e.target.value)}
             />
+          </Field>
+          <Field label={t('trade-category')}>
+            <Select
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+            >
+              <option value="">{t('category-none')}</option>
+              {categories.data?.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {'· '.repeat(c.depth - 1)}
+                  {c.name}
+                </option>
+              ))}
+            </Select>
           </Field>
           {create.isError ? (
             <p className="text-xs text-danger">

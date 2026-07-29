@@ -10,6 +10,7 @@ btn-back = ◀️ Back
 btn-cancel = ✖️ Cancel
 btn-close = Close
 btn-accept = ✅ Join
+btn-skip = Skip
 
 # --- shared errors ---
 error-no-book = No active book yet. Send /start first.
@@ -74,3 +75,14 @@ avg-period-month = This month
 avg-period-all = All time
 avg-result = Weighted avg { $direction } { $quote }: { $rate } ({ $count } trades, { $total } { $quote })
 avg-empty = No { $direction } { $quote } trades in that period yet.
+
+# --- categories (M4) ---
+trade-category-prompt = Category? Pick one or skip.
+category-none = (no category)
+
+# --- internal transfer (M4) ---
+transfer-from-prompt = Move money from which account?
+transfer-to-prompt = Move it to which account? (showing { $currency } accounts)
+transfer-amount-prompt = How much { $currency }? e.g. 250
+transfer-confirm = Move { $amount } { $currency } from "{ $source }" to "{ $target }"?
+transfer-done = 🔁 Moved { $amount } { $currency } to "{ $target }".

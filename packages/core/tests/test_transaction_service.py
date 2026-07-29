@@ -12,6 +12,7 @@ from smart_accounting.errors import CurrencyUnknown, Forbidden
 from smart_accounting.models import Book, BookMember, User
 from smart_accounting.repositories.accounts import AccountsRepo
 from smart_accounting.repositories.book_members import BookMembersRepo
+from smart_accounting.repositories.categories import CategoriesRepo
 from smart_accounting.repositories.currencies import CurrenciesRepo
 from smart_accounting.repositories.reports import ReportsRepo
 from smart_accounting.repositories.transactions import TransactionsRepo
@@ -35,7 +36,12 @@ async def _seed_member(session: AsyncSession, tg_id: int, role: int = int(Role.O
 def _tx_service(session: AsyncSession) -> TransactionService:
     uow = UoW(session)
     return TransactionService(
-        uow, TransactionsRepo(uow), AccountsRepo(uow), CurrenciesRepo(uow), BookMembersRepo(uow)
+        uow,
+        TransactionsRepo(uow),
+        AccountsRepo(uow),
+        CurrenciesRepo(uow),
+        CategoriesRepo(uow),
+        BookMembersRepo(uow),
     )
 
 
@@ -87,7 +93,7 @@ async def test_weighted_avg_through_service(db_session: AsyncSession) -> None:
     await svc.record(book_id, user_id, _sell(amount_quote=Decimal("10000"), rate=Decimal("90.3")))
 
     uow = UoW(db_session)
-    report = ReportService(uow, ReportsRepo(uow), BookMembersRepo(uow))
+    report = ReportService(uow, ReportsRepo(uow), AccountsRepo(uow), BookMembersRepo(uow))
     result = await report.weighted_avg(book_id, user_id, "USD", "sell")
 
     assert result.sample_count == 2

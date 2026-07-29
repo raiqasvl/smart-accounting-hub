@@ -28,6 +28,7 @@ from .routers import (
     accounts,
     auth,
     books,
+    categories,
     currencies,
     fx,
     health,
@@ -35,6 +36,7 @@ from .routers import (
     me,
     reports,
     transactions,
+    transfers,
 )
 
 _settings = get_config()
@@ -106,6 +108,8 @@ def create_app(container: AsyncContainer | None = None) -> FastAPI:
     api.include_router(fx.router)
     api.include_router(transactions.router)
     api.include_router(reports.router)
+    api.include_router(categories.router)
+    api.include_router(transfers.router)
     app.include_router(api)  # /api/v1/{auth, me, books, invites, accounts, currencies, fx, tx, reports}
 
     app.add_exception_handler(AppError, app_error_handler)

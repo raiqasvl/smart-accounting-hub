@@ -29,6 +29,7 @@ from smart_accounting_bot.dialogs.avg_report import _result_getter as avg_result
 from smart_accounting_bot.dialogs.books_menu import _on_pick
 from smart_accounting_bot.dialogs.create_account import _on_confirm as account_confirm
 from smart_accounting_bot.dialogs.create_book import _on_confirm as book_confirm
+from smart_accounting_bot.dialogs.internal_transfer import _on_confirm as transfer_confirm
 from smart_accounting_bot.dialogs.join_invite import _on_accept
 from smart_accounting_bot.dialogs.record_trade import _on_confirm as trade_confirm
 
@@ -179,6 +180,7 @@ async def test_record_trade_confirm_records() -> None:
                 quote_account_id=None,
                 occurred_at=datetime.now(UTC),
                 note=None,
+                category_id=None,
                 archived=False,
             ),
             False,
@@ -205,6 +207,30 @@ async def test_record_trade_confirm_records() -> None:
     assert (dto.amount_quote, dto.rate) == (Decimal("1000"), Decimal("90"))
     manager.next.assert_awaited_once()
     assert manager.dialog_data["result_base"] == Decimal("90000")
+
+
+async def test_internal_transfer_confirm_records() -> None:
+    txs = AsyncMock()
+    txs.record_transfer = AsyncMock(return_value=(MagicMock(), False))
+    manager = _manager(
+        {TgChatService: _chat_service(), TransactionService: txs},
+        dialog_data={
+            "from_id": 11,
+            "to_id": 22,
+            "currency": "USD",
+            "amount": "250",
+            "idem": "t1",
+        },
+    )
+
+    await transfer_confirm(AsyncMock(), MagicMock(), manager)
+
+    txs.record_transfer.assert_awaited_once()
+    book_id, user_id, dto = txs.record_transfer.call_args.args
+    assert (book_id, user_id) == (3, 7)
+    assert (dto.from_account_id, dto.to_account_id) == (11, 22)
+    assert dto.amount == Decimal("250")
+    manager.next.assert_awaited_once()
 
 
 async def test_avg_report_result_renders() -> None:

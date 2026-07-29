@@ -6,7 +6,7 @@
 
 .PHONY: help bootstrap up down restart logs migrate revision \
         dev-api dev-bot dev-miniapp tunnel \
-        test lint format typecheck check clean
+        test lint format typecheck i18n-check check clean
 
 help:                      ## Print this help.
 	@grep -E '^[a-zA-Z_-]+:.*?##' $(MAKEFILE_LIST) | sort | awk -F':.*?## ' '{printf "  %-12s  %s\n", $$1, $$2}'
@@ -71,7 +71,10 @@ typecheck:                 ## mypy + tsc.
 	uv run mypy packages/core apps/api apps/bot
 	pnpm typecheck
 
-check: lint format typecheck test  ## Full pre-commit gate.
+i18n-check:                ## Fail if user-facing text is hardcoded outside the catalogues.
+	@uv run python ops/i18n_check.py
+
+check: lint format typecheck i18n-check test  ## Full pre-commit gate.
 
 # --- cleanup ---
 
