@@ -77,9 +77,9 @@ Six phases, bottom-up. Conventions unchanged (services own tx via UoW; typed err
   `parents_tree`: root → `Ltree(str(id))`, child → `parent.parents_tree + Ltree(str(id))`. `move`
   (D14) recomputes every descendant's path in one tx via a `subpath`/`text2ltree` UPDATE over
   `parents_tree <@ old_path`.
-- **Two-leg atomicity (D-M4-5):** a transfer/conversion is **two `fx_transactions` rows in one tx**,
-  cross-linked via `linked_transaction_id` (second-pass update after both ids exist); archive/patch of
-  either leg cascades to its partner.
+- **Movements are single rows (D-M4-5, revised at build time):** a transfer/conversion is **ONE
+  `fx_transactions` row touching both accounts** (`quote_account_id` = money out, `base_account_id` =
+  money in). See the Decision Log for why the original two-leg design was dropped.
 
 ---
 
@@ -259,8 +259,16 @@ Add a category `Select` to the Trades create `Drawer` (from M3).
 - **D-M4-4 (Mini-App i18n) — CONFIRMED:** **keep hand-rolled `strings.ts`** (EN/RU dicts); do NOT
   migrate the app to Fluent for MVP (deviates from D13, but matches shipped code and is simpler). **Remove
   the unused `@fluent/bundle`/`@fluent/react` deps** to avoid confusion.
-- **D-M4-5 (two-leg):** transfers/conversions = two `fx_transactions` rows, one tx, cross-linked;
-  archive/patch cascades to the partner.
+- **D-M4-5 (account-to-account movements) — REVISED DURING BUILD (2026-07-28):** a transfer or FX
+  conversion is **ONE `fx_transactions` row touching both accounts** (`quote_account_id` = money out,
+  `base_account_id` = money in), *not* two linked rows as originally planned.
+  *Why:* the schema already carries both account FKs, and a mirror leg would corrupt the headline —
+  the "buy" leg of a USD→EUR conversion reads as *"bought USD"* and would pollute the buy-USD
+  weighted average. One economic event = one row: simpler and more correct.
+  `linked_transaction_id` stays unused (reserved for v1.1 splits/refunds).
+  *Consequence:* `internal_transfer` rows carry a synthetic `rate = 1`, so the weighted-average query
+  **excludes `kind = internal_transfer`** (no FX happened); `fx_conversion` rows are real trades and
+  ARE counted. Both are covered by tests in `apps/api/tests/test_transfers.py`.
 - **D-M4-6 (CSV permission) — CONFIRMED:** export gated by `tx.read` (read-only data → viewers may
   export), deviating from the milestone's "Editor+". Simpler and correct for a read-only op.
 - **D-M4-7 (P&L chart) — CONFIRMED:** account-balance chart is in scope; **P&L-by-currency is deferred
