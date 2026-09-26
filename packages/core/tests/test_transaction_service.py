@@ -21,7 +21,9 @@ from smart_accounting.services.report_service import ReportService
 from smart_accounting.services.transaction_service import TransactionService
 
 
-async def _seed_member(session: AsyncSession, tg_id: int, role: int = int(Role.OWNER)) -> tuple[int, int]:
+async def _seed_member(
+    session: AsyncSession, tg_id: int, role: int = int(Role.OWNER)
+) -> tuple[int, int]:
     user = User(telegram_user_id=tg_id, language="en", timezone="UTC")
     session.add(user)
     await session.flush()

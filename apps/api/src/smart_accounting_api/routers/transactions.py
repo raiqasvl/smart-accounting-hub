@@ -134,7 +134,9 @@ async def export_transactions_csv(
         for row in rows:
             # Money serializes to its decimal string (D23), so the CSV matches the API byte for byte.
             data = row.model_dump(mode="json")
-            writer.writerow([data[column] if data[column] is not None else "" for column in _CSV_COLUMNS])
+            writer.writerow(
+                [data[column] if data[column] is not None else "" for column in _CSV_COLUMNS]
+            )
             yield _drain(buffer)
 
     return StreamingResponse(

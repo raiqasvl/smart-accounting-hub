@@ -256,9 +256,7 @@ class TransactionService:
                     amount_base=row.amount_base,
                     fee=row.fee,
                     fee_currency_code=row.fee_currency_code,
-                    base_account=accounts.get(row.base_account_id)
-                    if row.base_account_id
-                    else None,
+                    base_account=accounts.get(row.base_account_id) if row.base_account_id else None,
                     quote_account=accounts.get(row.quote_account_id)
                     if row.quote_account_id
                     else None,
@@ -327,9 +325,7 @@ class TransactionService:
         if account is None or account.book_id != book_id:
             raise AccountNotInBook({"account_id": account_id, "book_id": book_id})
         if account.currency_code != currency_code:
-            raise AccountCurrencyMismatch(
-                {"account_id": account_id, "expected": currency_code}
-            )
+            raise AccountCurrencyMismatch({"account_id": account_id, "expected": currency_code})
 
     async def _check_category(self, book_id: int, category_id: int | None) -> None:
         if category_id is None:

@@ -13,6 +13,12 @@ yarn.lock
 research
 thoughts
 
+# Vendored agent/editor tooling (skill assets are overwritten on update). Mirrors ruff's
+# extend-exclude in pyproject.toml.
+.agents
+.claude
+.cursor
+
 # Python files use ruff, not prettier.
 *.py
 *.pyi

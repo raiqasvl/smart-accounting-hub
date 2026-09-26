@@ -62,9 +62,7 @@ async def test_list_and_patch_recompute(client: AsyncClient, login: Callable[...
     )
     tx_id = created.json()["id"]
 
-    listed = await client.get(
-        f"/api/v1/books/{book_id}/transactions", headers=owner["headers"]
-    )
+    listed = await client.get(f"/api/v1/books/{book_id}/transactions", headers=owner["headers"])
     assert listed.status_code == 200
     page = listed.json()
     assert page["has_more"] is False
@@ -76,9 +74,7 @@ async def test_list_and_patch_recompute(client: AsyncClient, login: Callable[...
     assert patched.status_code == 200
     assert patched.json()["amount_base"] == "91000.00000000"  # 1000 * 91.0
 
-    archived = await client.delete(
-        f"/api/v1/transactions/{tx_id}", headers=owner["headers"]
-    )
+    archived = await client.delete(f"/api/v1/transactions/{tx_id}", headers=owner["headers"])
     assert archived.status_code == 200
     assert archived.json() == {"archived": tx_id}
 

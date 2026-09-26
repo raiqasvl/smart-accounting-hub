@@ -27,9 +27,7 @@ async def _make(
     return dict(resp.json())
 
 
-async def test_paths_are_built_from_ids(
-    client: AsyncClient, login: Callable[..., Any]
-) -> None:
+async def test_paths_are_built_from_ids(client: AsyncClient, login: Callable[..., Any]) -> None:
     owner = await login(997000001)
     food = await _make(client, owner, "Food")
     lunch = await _make(client, owner, "Lunch", parent_id=food["id"])
@@ -59,9 +57,7 @@ async def test_rename_keeps_paths(client: AsyncClient, login: Callable[..., Any]
     assert paths[lunch["id"]] == f"{food['id']}.{lunch['id']}"  # descendant untouched
 
 
-async def test_move_cascades_to_descendants(
-    client: AsyncClient, login: Callable[..., Any]
-) -> None:
+async def test_move_cascades_to_descendants(client: AsyncClient, login: Callable[..., Any]) -> None:
     owner = await login(997000003)
     food = await _make(client, owner, "Food")
     lunch = await _make(client, owner, "Lunch", parent_id=food["id"])
@@ -113,9 +109,7 @@ async def test_move_under_own_descendant_is_422(
     assert resp.json()["error"]["code"] == "invalid_category_parent"
 
 
-async def test_delete_blocked_by_children(
-    client: AsyncClient, login: Callable[..., Any]
-) -> None:
+async def test_delete_blocked_by_children(client: AsyncClient, login: Callable[..., Any]) -> None:
     owner = await login(997000006)
     food = await _make(client, owner, "Food")
     await _make(client, owner, "Lunch", parent_id=food["id"])
