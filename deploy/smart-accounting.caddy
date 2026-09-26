@@ -1,0 +1,25 @@
+# Installed as /srv/edge/sites/smart-accounting.caddy by .github/workflows/deploy.yml, which
+# replaces __SITE_ADDRESS__ with the SITE_ADDRESS repository variable (the bare domain) first.
+#
+# Routes an explicit path list rather than a prefix: /healthz and /readyz live at bare paths
+# outside /api/v1 (apps/api/src/smart_accounting_api/routers/health.py). /docs, /redoc and
+# /openapi.json stay public on purpose (D30). The API has no CORS middleware, so it and the
+# Mini-App must keep sharing this one origin.
+
+__SITE_ADDRESS__ {
+	encode zstd gzip
+
+	@api path /api/v1/* /healthz /readyz /docs /redoc /openapi.json
+	handle @api {
+		reverse_proxy sa-api:8000
+	}
+
+	handle {
+		reverse_proxy sa-miniapp:3000
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}
