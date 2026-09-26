@@ -20,7 +20,6 @@ You will end up with these credentials filled into `.env`:
 | `BOT_USERNAME` | @BotFather (Step 1) |
 | `JWT_SECRET` | Generated locally (Step 6) |
 | `DOMAIN` | Your tunnel/prod URL (Step 5 / Step 9) |
-| `NEXT_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_BOT_USERNAME` | Derived from above |
 
 ---
 
@@ -229,15 +228,15 @@ The URL also changes on restart unless you have a paid plan with a reserved subd
 
 ### Option C: production domain
 
-You own `accounting.example.com`. DNS A record points to your server's IP. Caddy (already in `ops/compose.yml`) handles auto-TLS. The URL is permanent.
+You own `accounting.example.com`. DNS A record points to your server's IP. The shared Caddy on the droplet handles auto-TLS (see [deploy.md](deploy.md)). The URL is permanent.
 
 After picking one, **update `.env`**:
 
 ```dotenv
 DOMAIN=<your-tunnel-or-prod-domain-without-https>
-NEXT_PUBLIC_API_BASE_URL=https://<your-domain>/api/v1
-NEXT_PUBLIC_BOT_USERNAME=smart_accounting_hub_bot
 ```
+
+The Mini-App needs no URL of its own: it calls the API by relative `/api/v1/*` paths on its own origin.
 
 And **update the Mini-App URL in @BotFather**:
 
@@ -309,7 +308,19 @@ If the Mini-App button does nothing in Telegram:
 
 ---
 
-> **Production deployment is deferred** for the local-dev MVP. When we re-introduce it later, the steps land here as Step 9.
+## Step 9 — Production
+
+Production uses its **own** bot — never the dev bot: Telegram gives each token's updates to one
+poller, so a local `make dev-bot` on the prod token would fight the server for them.
+
+1. `/newbot` in @BotFather → e.g. `Smart Accounting Hub` / `smart_accounting_hub_bot`. The token
+   goes straight into `/srv/smart-accounting/.env` on the droplet
+   ([deploy.md §4](deploy.md#4-secrets-on-the-droplet)) — nowhere else.
+2. Repeat Step 3 (description, commands, privacy) for the prod bot.
+3. After the first deploy answers on `https://<domain>/`:
+   - `/newapp` (or `/myapps` → Edit Web App URL) → `https://<domain>/`
+   - `/setmenubutton` → `Open app` → `https://<domain>/`
+4. `/start` the prod bot from your phone and open the Mini-App.
 
 ## Common pitfalls
 

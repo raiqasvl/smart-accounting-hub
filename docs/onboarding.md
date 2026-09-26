@@ -47,7 +47,7 @@ make dev-miniapp                     # next dev on http://localhost:3000
 # Terminal E (when you need Telegram to reach the Mini-App)
 make tunnel                          # cloudflared --url http://localhost:3000
 # Copy the printed https://*.trycloudflare.com URL into BotFather: /myapps → Edit Web App URL.
-# Update DOMAIN + NEXT_PUBLIC_API_BASE_URL in .env to match. Restart api+miniapp.
+# Update DOMAIN in .env to match (the bot builds the Mini-App button from it). Restart the bot.
 ```
 
 ## Quality gates

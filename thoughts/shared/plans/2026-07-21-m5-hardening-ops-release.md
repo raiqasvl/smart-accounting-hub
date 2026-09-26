@@ -6,7 +6,7 @@ branch: main
 repository: smart-accounting-hub
 topic: "M5 — Hardening, ops, deploy, release (un-defer deployment)"
 tags: [plan, m5, security, observability, docker, caddy, ci, backups, release, post-mvp]
-status: ready-for-dev
+status: in-progress
 last_updated: 2026-07-21
 last_updated_by: i.gorvier
 decisions_confirmed: "CONFIRMED 2026-07-21 — D-M5-1..6 accepted; PLAN NOW / EXECUTE LATER (hold until a real deploy decision); Backblaze B2; re-instates deferred D17/D18/D19"
@@ -18,6 +18,12 @@ scope_note: "M5 was DEFERRED by the 2026-05-04 local-dev pivot. Planning it here
 # M5 — Hardening, ops, deploy, release
 
 ## Overview
+
+> **2026-09-26:** Phases 3 and 4 are executed by
+> [2026-09-26-m5-phase3-4-droplet-deploy.md](2026-09-26-m5-phase3-4-droplet-deploy.md), with three
+> deviations recorded there: a self-contained `deploy/compose.yml` instead of the prod-override
+> pair, a shared `/srv/edge` Caddy (bvlk already holds 80/443 on the droplet), and images built in
+> CI rather than on the server. Phases 1, 2, 5, 6 are unchanged and still pending.
 
 **No new user features.** M5 turns the local-dev MVP (M1–M4) into a deployable v1.0: security pass,
 observability back on (D17), containerization + reverse proxy, CI (D19), backups (D18), smoke/demo

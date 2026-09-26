@@ -6,7 +6,7 @@ Telegram-Mini-App-driven personal/family/business **FX accounting** tool. Headli
 
 ## Status
 
-🚧 **In implementation. Local-dev focus only at MVP.** Deployment + CI/CD deferred to post-MVP.
+🚧 **In implementation.** Local dev for daily work; production deploys from `main` — see [docs/deploy.md](docs/deploy.md).
 v1.0 plan: `thoughts/shared/plans/2026-05-01-mvp-scope-and-milestones.md` (M1→M4 in scope; M5 deferred).
 
 ## Stack

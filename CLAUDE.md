@@ -7,8 +7,8 @@ lives in `STRUCTURE.md` and `thoughts/`.
 ## What this project is
 
 Telegram-Mini-App-driven personal/family/business **FX accounting** tool. Headline feature:
-**weighted-average exchange-rate** across stored FX transactions. MVP is **local-dev only** —
-deployment + CI are deferred.
+**weighted-average exchange-rate** across stored FX transactions. Daily work is local dev;
+production deploys from `main` via GitHub Actions — see `docs/deploy.md`.
 
 - Single-page architecture / mental model → `STRUCTURE.md`
 - Quickstart + daily local-dev flow → `README.md`
@@ -83,5 +83,6 @@ make test             # pytest + pnpm -r test
 | Generated TS API types | `packages/api-types/src/` |
 | Migrations | `migrations/versions/` |
 | Compose + scripts | `ops/` |
+| Production deploy (compose, edge proxy, runbook) | `deploy/`, `.github/workflows/`, `docs/deploy.md` |
 | Design docs (plans / research / handoffs) | `thoughts/shared/` |
 | OSS reference clones | `research/` (gitignored) |
