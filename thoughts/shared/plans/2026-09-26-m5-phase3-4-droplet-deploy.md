@@ -1283,6 +1283,10 @@ jobs:
           GHCR_USER: ${{ github.actor }}
         run: |
           set -euo pipefail
+          # The heredoc is unquoted on purpose: GHCR_TOKEN and GHCR_USER must expand here, on the
+          # runner, so the token reaches the droplet inside stdin. Nothing else in the script may
+          # contain a `$`.
+          # shellcheck disable=SC2087
           ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
             "$SSH_USER@$SSH_HOST" 'bash -euo pipefail -s' <<REMOTE
           printf '%s' '${GHCR_TOKEN}' | docker login ghcr.io -u '${GHCR_USER}' --password-stdin
