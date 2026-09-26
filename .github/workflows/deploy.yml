@@ -1,0 +1,178 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never let two deploys race onto the droplet. Unlike CI, in-progress runs are not cancelled:
+# a half-applied deploy is worse than a redundant one.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  # The same gates a pull request gets. A red test must not reach the server because it merged.
+  verify:
+    uses: ./.github/workflows/ci.yml
+
+  build:
+    name: build and publish ${{ matrix.name }}
+    needs: verify
+    # Off until the droplet is prepared (docs/deploy.md). Until then a push to main runs CI only.
+    if: vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      matrix:
+        include:
+          - name: app
+            dockerfile: Dockerfile
+            image: smart-accounting-app
+          - name: miniapp
+            dockerfile: apps/miniapp/Dockerfile
+            image: smart-accounting-miniapp
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          # Issued to this run by GitHub. There is no registry secret to rotate.
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          # `latest` is what the droplet pulls; the sha tag says exactly which commit is serving
+          # and is what APP_TAG pins to roll back.
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}:latest
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}:${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+
+  deploy:
+    name: migrate and restart on the droplet
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Prepare SSH
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          SSH_HOST_KEY: ${{ secrets.DEPLOY_HOST_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          # Pinned host key, not ssh-keyscan: trusting whatever answers on the first connection
+          # would accept an impostor without complaint.
+          printf '%s\n' "$SSH_HOST_KEY" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Render the site file
+        env:
+          SITE_ADDRESS: ${{ vars.SITE_ADDRESS }}
+        run: |
+          set -euo pipefail
+          if [ -z "$SITE_ADDRESS" ]; then
+            echo "::error::set the SITE_ADDRESS repository variable to the bare domain"
+            exit 1
+          fi
+          sed "s|__SITE_ADDRESS__|${SITE_ADDRESS}|" deploy/smart-accounting.caddy > smart-accounting.caddy
+          if grep -q __SITE_ADDRESS__ smart-accounting.caddy; then
+            echo "::error::placeholder survived rendering"
+            exit 1
+          fi
+
+      # Without this the droplet keeps whatever compose file was last copied by hand, and a change
+      # under deploy/ silently never ships.
+      - name: Sync deployment config
+        env:
+          SSH_HOST: ${{ secrets.DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          scp -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
+            deploy/compose.yml "$SSH_USER@$SSH_HOST:/srv/smart-accounting/compose.yml"
+          scp -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
+            smart-accounting.caddy "$SSH_USER@$SSH_HOST:/tmp/smart-accounting.caddy"
+
+      # Secrets travel through the environment rather than being interpolated into the script,
+      # so nothing in them can be read as shell. The script goes to the remote bash on stdin, so
+      # the registry token never appears in the droplet's process list.
+      - name: Deploy over SSH
+        env:
+          SSH_HOST: ${{ secrets.DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.DEPLOY_USER }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USER: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          # The heredoc is unquoted on purpose: GHCR_TOKEN and GHCR_USER must expand here, on the
+          # runner, so the token reaches the droplet inside stdin. Nothing else in the script may
+          # contain a `$`.
+          # shellcheck disable=SC2087
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
+            "$SSH_USER@$SSH_HOST" 'bash -euo pipefail -s' <<REMOTE
+          printf '%s' '${GHCR_TOKEN}' | docker login ghcr.io -u '${GHCR_USER}' --password-stdin
+          cd /srv/smart-accounting
+          docker compose pull
+          docker logout ghcr.io
+
+          # Before up, never from an entrypoint: api and bot start together and would race for
+          # alembic's lock. Revision 0002 seeds currencies, so this is data as well as schema.
+          docker compose run --rm migrate
+          docker compose up -d --remove-orphans
+
+          # Install the site file only if Caddy accepts it. A rejected reload keeps the running
+          # config, and restoring the previous file keeps the disk in step with it, so a later
+          # restart of the edge cannot come up on a broken file.
+          cd /srv/edge/sites
+          if [ -f smart-accounting.caddy ]; then cp smart-accounting.caddy smart-accounting.caddy.prev; fi
+          mv /tmp/smart-accounting.caddy smart-accounting.caddy
+          if ! docker compose -f /srv/edge/compose.yml exec -T caddy caddy reload --config /etc/caddy/Caddyfile; then
+            if [ -f smart-accounting.caddy.prev ]; then mv smart-accounting.caddy.prev smart-accounting.caddy; else rm smart-accounting.caddy; fi
+            exit 1
+          fi
+          rm -f smart-accounting.caddy.prev
+
+          # Superseded layers accumulate fast.
+          docker image prune -f
+          REMOTE
+
+      # /readyz crosses Caddy, the API and Postgres in one request; / proves the Mini-App.
+      - name: Confirm the app answers
+        env:
+          SITE_ADDRESS: ${{ vars.SITE_ADDRESS }}
+        run: |
+          set -euo pipefail
+          for path in /readyz /; do
+            url="https://${SITE_ADDRESS}${path}"
+            for i in $(seq 1 12); do
+              code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$url" || true)
+              if [ "$code" = "200" ]; then
+                echo "$url answered 200 after $((i * 5))s"
+                continue 2
+              fi
+              echo "$url attempt $i: HTTP $code"
+              sleep 5
+            done
+            echo "::error::$url did not return 200 within 60s"
+            exit 1
+          done
