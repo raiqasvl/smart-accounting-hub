@@ -1,0 +1,134 @@
+name: CI
+
+on:
+  pull_request:
+  # Deploy calls this before it builds an image, so nothing ships without the checks a pull
+  # request gets. There is deliberately no `push: main` trigger: it would start a second run in
+  # the same concurrency group as the one Deploy calls, and the two would cancel each other.
+  workflow_call:
+
+# A second push to the same branch makes the first run irrelevant.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    name: python — lint / types / migrations / tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      # The official image, because migration 0001 runs CREATE EXTENSION ltree / pgcrypto /
+      # btree_gist, which needs the superuser a service container gives us.
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: smart_accounting
+          POSTGRES_USER: smart_accounting
+          POSTGRES_PASSWORD: ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U smart_accounting"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+
+    env:
+      POSTGRES_DSN: postgresql+asyncpg://smart_accounting:ci@localhost:5432/smart_accounting
+      REDIS_DSN: redis://localhost:6379/0
+      FX_REFRESH_ENABLED: 'False'
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.7.17'
+          enable-cache: true
+
+      - name: Install
+        run: uv sync --frozen --all-packages
+
+      - name: Lint
+        run: uv run ruff check
+
+      - name: Format
+        run: uv run ruff format --check
+
+      - name: Types
+        run: uv run mypy packages/core apps/api apps/bot
+
+      # The test suites run against a migrated database (packages/core/tests/conftest.py).
+      - name: Migrate
+        run: uv run alembic upgrade head
+
+      - name: Models match migrations
+        run: uv run alembic check
+
+      - name: Test
+        run: uv run pytest
+
+  node:
+    name: node — lint / format / types / tests / build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v5
+
+      # Version comes from the packageManager field in package.json.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .tool-versions
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Format
+        run: pnpm format:check
+
+      - name: Types
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+  guards:
+    name: architecture guards
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v5
+
+      # CLAUDE.md states both rules as enforced; until this job existed nothing enforced them.
+      - name: Bot calls services only (D22)
+        run: |
+          if grep -rnE 'smart_accounting\.(models|repositories)' apps/bot/src; then
+            echo "::error::apps/bot must call smart_accounting.services, never models or repositories (D22)"
+            exit 1
+          fi
+
+      - name: Apps never import each other
+        run: |
+          if grep -rnE '\bsmart_accounting_api\b' apps/bot/src || grep -rnE '\bsmart_accounting_bot\b' apps/api/src; then
+            echo "::error::apps/api and apps/bot must not import each other"
+            exit 1
+          fi
+
+      - name: No hardcoded translated text
+        run: python3 ops/i18n_check.py
