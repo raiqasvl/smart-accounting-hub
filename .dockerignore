@@ -1,26 +1,38 @@
-# Mirrors .gitignore but stricter — keep build context lean for fast `docker compose build`.
-# The Dockerfile in the repo root copies the whole tree; this list trims it.
+# Keeps the build context lean and, more importantly, keeps host artefacts out of the image:
+# a macOS node_modules copied into a Linux build breaks native modules. Patterns are `**/`-prefixed
+# because a bare `node_modules` only matches at the context root.
+#
+# Both Dockerfiles build from the repository root (the workspaces span packages/ and apps/).
 
 .git
 .github
 .claude
 .cursor
-.thoughts
+.agents
+.thoughts*
 thoughts
 research
 docs
-node_modules
-.venv
-.next
-.turbo
-.pytest_cache
-.mypy_cache
-.ruff_cache
-__pycache__
-*.pyc
-.env
-.env.local
-db/password.txt
+deploy
 ops/.local-data
+
+**/node_modules
+**/.next
+**/.turbo
+**/.venv
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+**/*.tsbuildinfo
+
+.env
+.env.*
+!.env.example
+db/password.txt
+*.pem
+*.key
+
 *.md
 !THIRD_PARTY_NOTICES.md
