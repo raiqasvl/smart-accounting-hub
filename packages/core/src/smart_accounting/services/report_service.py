@@ -80,9 +80,7 @@ class ReportService:
 
             balance = account.opening_balance
             points: list[BalancePointOut] = []
-            legs = await self._reports.legs_for_account(
-                book_id, account_id, period_from, period_to
-            )
+            legs = await self._reports.legs_for_account(book_id, account_id, period_from, period_to)
             for leg in legs:
                 outgoing = leg.direction == TransactionDirection.sell
                 if leg.quote_account_id == account_id:

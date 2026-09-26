@@ -128,9 +128,7 @@ async def test_transfer_currency_mismatch_is_422(
     assert resp.json()["error"]["code"] == "account_currency_mismatch"
 
 
-async def test_same_account_transfer_is_422(
-    client: AsyncClient, login: Callable[..., Any]
-) -> None:
+async def test_same_account_transfer_is_422(client: AsyncClient, login: Callable[..., Any]) -> None:
     owner = await login(998000005)
     book_id = owner["book"]["id"]
     cash = await _account(client, owner, "Cash", "USD")
@@ -215,9 +213,7 @@ async def test_account_balance_series_tracks_movements(
     assert incoming.json()["points"][-1]["balance"] == "1250.00000000"  # received 250
 
 
-async def test_trade_can_carry_a_category(
-    client: AsyncClient, login: Callable[..., Any]
-) -> None:
+async def test_trade_can_carry_a_category(client: AsyncClient, login: Callable[..., Any]) -> None:
     owner = await login(998000009)
     book_id = owner["book"]["id"]
     category = await client.post(

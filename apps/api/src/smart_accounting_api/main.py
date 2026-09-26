@@ -110,7 +110,8 @@ def create_app(container: AsyncContainer | None = None) -> FastAPI:
     api.include_router(reports.router)
     api.include_router(categories.router)
     api.include_router(transfers.router)
-    app.include_router(api)  # /api/v1/{auth, me, books, invites, accounts, currencies, fx, tx, reports}
+    # /api/v1/{auth, me, books, invites, accounts, currencies, fx, tx, reports}
+    app.include_router(api)
 
     app.add_exception_handler(AppError, app_error_handler)
     setup_dishka(container=container, app=app)

@@ -135,7 +135,9 @@ async def _rate_getter(dialog_manager: DialogManager, **_: Any) -> dict[str, Any
         base = book.base_currency_code
         data["base"] = base
         fx = await service(manager, FxService)
-        fx_hint = await fx.latest_rate(actor.book_id, actor.user_id, base, str(data.get("quote", "")))
+        fx_hint = await fx.latest_rate(
+            actor.book_id, actor.user_id, base, str(data.get("quote", ""))
+        )
         if fx_hint.rate is not None:
             hint = format(fx_hint.rate, ".4f")
     return {

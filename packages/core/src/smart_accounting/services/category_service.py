@@ -98,7 +98,9 @@ class CategoryService:
                     raise InvalidCategoryParent({"parent_id": dto.parent_id})
                 # Re-parenting under your own descendant would detach the subtree from the root.
                 if str(parent.parents_tree).startswith(f"{old_path}."):
-                    raise InvalidCategoryParent({"parent_id": dto.parent_id, "reason": "descendant"})
+                    raise InvalidCategoryParent(
+                        {"parent_id": dto.parent_id, "reason": "descendant"}
+                    )
                 new_path = parent.parents_tree + own
 
             if str(new_path) != str(old_path):

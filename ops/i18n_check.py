@@ -41,9 +41,7 @@ def main() -> int:
             rel = path.relative_to(ROOT).as_posix()
             if rel in EXEMPT:
                 continue
-            for lineno, line in enumerate(
-                path.read_text(encoding="utf-8").splitlines(), start=1
-            ):
+            for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
                 if any(is_cyrillic(ch) for ch in line):
                     offenders.append(f"{rel}:{lineno}: {line.strip()}")
 

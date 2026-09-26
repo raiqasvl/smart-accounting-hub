@@ -2,5 +2,5 @@
 # `pnpm install` from the repo root will resolve all dependencies for every package.
 
 packages:
-  - "apps/miniapp"
-  - "packages/api-types"
+  - 'apps/miniapp'
+  - 'packages/api-types'
