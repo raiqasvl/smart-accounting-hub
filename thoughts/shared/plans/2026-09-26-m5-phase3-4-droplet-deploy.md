@@ -697,10 +697,12 @@ services:
   # One-shot. The deploy runs it with `run --rm` between pull and up, never from an entrypoint:
   # api and bot start together and would race for alembic's lock. Revision 0002 seeds the
   # currency table, so skipping this leaves an empty app, not just a missing schema.
+  # The profile keeps `up` from starting it a second time; `run migrate` still finds it.
   migrate:
     <<: *app
     command: ['alembic', 'upgrade', 'head']
     restart: 'no'
+    profiles: [tools]
     depends_on:
       db:
         condition: service_healthy
@@ -928,11 +930,18 @@ Expected: `api` and `miniapp` `healthy`; `db`, `redis` `healthy`; `bot` restarti
 Run: `docker compose -f "$S/sa/compose.yml" logs bot | grep -m1 -i unauthorized`
 Expected: a Telegram `Unauthorized` line — and no import, i18n or Redis error before it.
 
-Run: `for p in /healthz /readyz /openapi.json /api/v1/currencies /; do printf '%-20s %s\n' "$p" "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8088$p)"; done`
-Expected: `/healthz 200`, `/readyz 200`, `/openapi.json 200`, `/api/v1/currencies 401` (reached the API, rejected without a JWT — the D24 envelope), `/ 200`.
+Run: `for p in /healthz /readyz /openapi.json /docs /api/v1/me /; do printf '%-20s %s\n' "$p" "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8088$p)"; done`
+Expected: `/healthz 200`, `/readyz 200`, `/openapi.json 200`, `/docs 200`, `/api/v1/me 401` (reached the API, rejected without a JWT), `/ 200`.
 
-Run: `curl -s http://localhost:8088/api/v1/currencies`
-Expected: JSON `{"error": {"code": ..., "params": ...}, "request_id": ...}` — proves the path hit FastAPI, not Next.
+Run: `curl -s http://localhost:8088/api/v1/me`
+Expected: `{"error":{"code":"jwt_invalid","params":{"reason":"missing_bearer"}},"request_id":"req_…"}` — the D24 envelope proves the path hit FastAPI, not Next. (Don't use an endpoint with a required query parameter such as `/currencies`: FastAPI validates it before auth and answers 422 in its default `{"detail": …}` shape, which bypasses D24 — a pre-existing API gap, tracked separately.)
+
+Run: `docker compose -f "$S/sa/compose.yml" up -d --remove-orphans 2>&1 | grep -i migrate || echo "migrate not started by up"`
+Expected: `migrate not started by up` — the `tools` profile keeps it out of `up`.
+
+Run (edge safety — a broken site file must not take down the proxy):
+`printf 'http://localhost {\n\treverse_proxy {\n' > "$S/edge/sites/smart-accounting.caddy" && docker exec edge-check caddy reload --config /etc/caddy/Caddyfile; echo "exit=$?"; curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8088/readyz`
+Expected: `exit=1`, then `200` — the reload is rejected and the running config keeps serving.
 
 Run: `docker compose -f "$S/sa/compose.yml" ps --format '{{.Service}} {{.Ports}}' | grep -E '0\.0\.0\.0|:::' || echo "no published ports"`
 Expected: `no published ports`
@@ -944,7 +953,7 @@ Expected: `db` does not resolve on `edge`; `sa-api` does.
 
 ```bash
 docker rm -f edge-check
-docker compose -f "$S/sa/compose.yml" down -v
+docker compose -f "$S/sa/compose.yml" --profile tools down -v
 rm -rf "$S"
 ```
 

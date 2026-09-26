@@ -1,0 +1,35 @@
+# The shared reverse proxy for every project on the droplet. Installed once, by hand, at
+# /srv/edge/ (docs/deploy.md, "Moving bvlk onto the edge").
+#
+# Each project owns exactly one file in sites/ and reloads Caddy after replacing it. Nobody edits
+# this Caddyfile or another project's site file, so no deploy can erase a neighbour's routes.
+#
+#   docker network create edge       # once, before the first `up`
+#   docker compose up -d
+
+name: edge
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp' # HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./sites:/etc/caddy/sites:ro
+      # Certificates. Losing this volume means re-issuing every certificate, and Let's Encrypt
+      # rate-limits that, so it is a named volume rather than a bind mount.
+      - caddy-data:/data
+      - caddy-config:/config
+    networks: [edge]
+
+networks:
+  edge:
+    external: true
+
+volumes:
+  caddy-data:
+  caddy-config:

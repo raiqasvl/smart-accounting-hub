@@ -1,0 +1,125 @@
+# Deployed to /srv/smart-accounting/ on the droplet, beside .env and db/password.txt.
+#
+# The droplet never builds: GitHub Actions publishes both images to GHCR and this file only
+# pulls them. Nothing here publishes a host port. The shared Caddy in /srv/edge (deploy/edge/)
+# reaches `sa-api` and `sa-miniapp` over the external `edge` network; Postgres and Redis sit on
+# `backend`, which Caddy is not attached to.
+#
+# Order, as .github/workflows/deploy.yml runs it:
+#   docker compose pull
+#   docker compose run --rm migrate
+#   docker compose up -d --remove-orphans
+#
+# Roll back by pinning an earlier build: APP_TAG=<commit sha> in .env, then `up -d`.
+
+name: smart-accounting
+
+x-app: &app
+  image: ghcr.io/raiqasvl/smart-accounting-app:${APP_TAG:-latest}
+  env_file: .env
+  restart: unless-stopped
+
+services:
+  db:
+    image: postgres:16
+    user: postgres
+    restart: unless-stopped
+    # No `ports`, unlike ops/compose.yml. On a public machine a published 5432 is Postgres on the
+    # internet, and Docker writes its own iptables rules that bypass UFW.
+    secrets: [db-password]
+    environment:
+      POSTGRES_DB: smart_accounting
+      POSTGRES_USER: smart_accounting
+      POSTGRES_PASSWORD_FILE: /run/secrets/db-password
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'smart_accounting']
+      interval: 5s
+      retries: 10
+    networks: [backend]
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      retries: 10
+    networks: [backend]
+
+  # One-shot. The deploy runs it with `run --rm` between pull and up, never from an entrypoint:
+  # api and bot start together and would race for alembic's lock. Revision 0002 seeds the
+  # currency table, so skipping this leaves an empty app, not just a missing schema.
+  # The profile keeps `up` from starting it a second time; `run migrate` still finds it.
+  migrate:
+    <<: *app
+    command: ['alembic', 'upgrade', 'head']
+    restart: 'no'
+    profiles: [tools]
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [backend]
+
+  api:
+    <<: *app
+    command: ['smart-accounting-api']
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      # /readyz runs SELECT 1 and answers 503 when the database is gone; /healthz is always 200
+      # and would report a healthy API with no database. urlopen raises on 503. The slim image
+      # has no curl, hence the standard library.
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/readyz', timeout=3)"
+      interval: 15s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    networks:
+      backend:
+      edge:
+        # Prefixed: `edge` is shared with other projects, and two services answering to the same
+        # name there would be load-balanced across unrelated apps.
+        aliases: [sa-api]
+
+  bot:
+    <<: *app
+    command: ['python', '-m', 'smart_accounting_bot']
+    # Exactly one replica: Telegram serves getUpdates to one consumer per token, and a second
+    # poller gets TelegramConflictError. set_my_commands runs at boot, so a moment without
+    # egress to api.telegram.org exits the process — restart covers it.
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks: [backend]
+
+  miniapp:
+    # Healthcheck comes from the image (apps/miniapp/Dockerfile).
+    image: ghcr.io/raiqasvl/smart-accounting-miniapp:${APP_TAG:-latest}
+    restart: unless-stopped
+    networks:
+      edge:
+        aliases: [sa-miniapp]
+
+networks:
+  backend:
+  edge:
+    external: true
+
+volumes:
+  db-data:
+  redis-data:
+
+secrets:
+  db-password:
+    file: ./db/password.txt

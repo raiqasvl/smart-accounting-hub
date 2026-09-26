@@ -1,0 +1,5 @@
+# /srv/edge/Caddyfile — deliberately nothing but the import. Each project installs its own site
+# file into sites/ and runs `caddy reload`; a file that fails to load is rejected and the running
+# config stays in place.
+
+import sites/*.caddy
