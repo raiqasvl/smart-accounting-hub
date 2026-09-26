@@ -366,9 +366,9 @@ cp research/AiogramBotTemplate/alembic.ini            apps/bot/alembic.ini
 ## Appendix A — files and references touched
 
 **Cloned references:**
-- `/Users/raiqasvl/Enterprise/web-development/0-FreeLance/smart-accounting-hub/research/FinWave-Backend/`
-- `/Users/raiqasvl/Enterprise/web-development/0-FreeLance/smart-accounting-hub/research/FinWave-Telegram-Bot/`
-- `/Users/raiqasvl/Enterprise/web-development/0-FreeLance/smart-accounting-hub/research/AiogramBotTemplate/`
+- `/Users/raiqasvl/Enterprise/web-development/0-FL/smart-accounting-hub/research/FinWave-Backend/`
+- `/Users/raiqasvl/Enterprise/web-development/0-FL/smart-accounting-hub/research/FinWave-Telegram-Bot/`
+- `/Users/raiqasvl/Enterprise/web-development/0-FL/smart-accounting-hub/research/AiogramBotTemplate/`
 
 **Key files from FinWave-Backend:**
 - `src/main/resources/db/migration/V1.0.0__base.sql` — base schema
