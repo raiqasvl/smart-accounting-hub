@@ -550,7 +550,11 @@ ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
 # so this matters only for a path the Caddy matcher misses — and then it answers instead of 502.
 ENV API_PROXY_TARGET=http://sa-api:8000
 
-RUN corepack enable
+# The corepack bundled with Node 20.18 verifies pnpm against npm registry signing keys that npm
+# has since rotated, and fails with "Cannot find matching keyid". A newer corepack carries the
+# current keys. Pinned, so a future corepack release cannot change the build under us.
+RUN npm install -g corepack@0.36.0 \
+ && corepack enable
 
 WORKDIR /app
 
