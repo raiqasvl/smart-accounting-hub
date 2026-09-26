@@ -1,5 +1,5 @@
 # Top-level developer entry points — local development only.
-# Deployment + CI targets are deferred (see plan §0).
+# Production deploy is CI-driven (.github/workflows/deploy.yml); runbook in docs/deploy.md.
 #
 # `apps/api` and `apps/bot` run on the host via uv; `apps/miniapp` via pnpm.
 # Only Postgres + Redis run in Docker (ops/compose.yml).
@@ -21,7 +21,7 @@ bootstrap:                 ## One-time setup on a fresh clone.
 
 up:                        ## Start postgres + redis containers.
 	docker compose -f ops/compose.yml up -d
-	@echo "DB: localhost:5432 · Redis: localhost:6379"
+	@echo "DB: localhost:5433 · Redis: localhost:6380"
 
 down:                      ## Stop the compose stack.
 	docker compose -f ops/compose.yml down
