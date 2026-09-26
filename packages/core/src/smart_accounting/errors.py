@@ -38,6 +38,17 @@ class JwtExpired(AppError):
     http_status = 401
 
 
+# --- request validation ---
+
+
+class RequestInvalid(AppError):
+    """The request failed schema validation before any service ran. `params["errors"]` lists each
+    failure as {"loc", "type"}; the Mini-App and bot own the wording."""
+
+    code = "validation_error"
+    http_status = 422
+
+
 # --- authorization / tenancy (M2) ---
 
 
