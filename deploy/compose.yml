@@ -22,7 +22,11 @@ x-app: &app
 services:
   db:
     image: postgres:16
-    user: postgres
+    # No `user: postgres` here, unlike ops/compose.yml. A file secret is bind-mounted with its
+    # host owner and mode (deploy, 600), so uid 999 cannot read it and the entrypoint dies with
+    # "Permission denied". The image's entrypoint starts as root, reads the secret, then drops to
+    # postgres itself. Docker Desktop on macOS ignores host ownership, which is why only Linux
+    # showed this.
     restart: unless-stopped
     # No `ports`, unlike ops/compose.yml. On a public machine a published 5432 is Postgres on the
     # internet, and Docker writes its own iptables rules that bypass UFW.
