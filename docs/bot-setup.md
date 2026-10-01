@@ -310,17 +310,34 @@ If the Mini-App button does nothing in Telegram:
 
 ## Step 9 — Production
 
-Production uses its **own** bot — never the dev bot: Telegram gives each token's updates to one
-poller, so a local `make dev-bot` on the prod token would fight the server for them.
+Production reuses the **same bot** as local development (decision 2026-10-01 — one bot is enough
+at this stage). That has two consequences:
 
-1. `/newbot` in @BotFather → e.g. `Smart Accounting Hub` / `smart_accounting_hub_bot`. The token
-   goes straight into `/srv/smart-accounting/.env` on the droplet
-   ([deploy.md §4](deploy.md#4-secrets-on-the-droplet)) — nowhere else.
-2. Repeat Step 3 (description, commands, privacy) for the prod bot.
-3. After the first deploy answers on `https://<domain>/`:
+- **Never poll from two places at once.** Telegram gives each token's updates to one poller; a
+  local `make dev-bot` while the server's bot runs makes both race for updates and log
+  `TelegramConflictError`. Before working on the bot locally, stop production's, and start it
+  again afterwards:
+
+  ```bash
+  ssh deploy@167.172.137.214 'cd /srv/smart-accounting && docker compose stop bot'
+  ssh deploy@167.172.137.214 'cd /srv/smart-accounting && docker compose start bot'
+  ```
+
+- **The `/start` button follows whichever process answered.** It is built from that process's
+  `DOMAIN`, so a local bot with `DOMAIN=<tunnel>` sends users to your laptop. The menu button set
+  in @BotFather is one per bot and stays on production.
+
+Steps:
+
+1. Copy the existing bot's token into `/srv/smart-accounting/.env` on the droplet
+   ([deploy.md §4](deploy.md#4-secrets-on-the-droplet)) — never into chat, the repo or GitHub.
+2. After the first deploy answers on `https://<domain>/`:
    - `/newapp` (or `/myapps` → Edit Web App URL) → `https://<domain>/`
    - `/setmenubutton` → `Open app` → `https://<domain>/`
-4. `/start` the prod bot from your phone and open the Mini-App.
+3. `/start` the bot from your phone and open the Mini-App.
+
+If one bot becomes limiting (real users while you develop), create a separate dev bot with
+`/newbot` and give it its own token in your local `.env`; production keeps the current one.
 
 ## Common pitfalls
 
@@ -354,14 +371,14 @@ poller, so a local `make dev-bot` on the prod token would fight the server for t
 | `/setmenubutton` | Persistent menu button |
 | `/deletebot` | Permanently delete the bot |
 
-## Two bots, one developer
+## One bot or two
 
-Recommended: keep **two bots** under one Telegram account:
+Currently **one bot** serves both local development and production (see Step 9 for the rule that
+comes with it: stop production's poller before running `make dev-bot`).
 
-- `smart_accounting_dev_bot` — points at cloudflared, polling, low traffic.
-- `smart_accounting_hub_bot` — points at production, polling at v1.0 (webhook later).
-
-Each gets its own `BOT_TOKEN`, its own `db/password.txt`, its own Mini-App. Swap by changing `.env` + restarting compose. Telegram doesn't care that they're "the same" project.
+Splitting later is cheap: create a second bot with `/newbot`, put its token in your local `.env`,
+and leave production's token where it is. Each bot then has its own Mini-App URL and nothing needs
+stopping.
 
 ## What's next
 

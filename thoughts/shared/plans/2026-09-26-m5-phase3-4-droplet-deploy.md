@@ -9,7 +9,7 @@ status: ready-for-dev
 last_updated: 2026-09-26
 last_updated_by: i.gorvier
 based_on: thoughts/shared/plans/2026-07-21-m5-hardening-ops-release.md (Phases 3 and 4)
-decisions_confirmed: "CONFIRMED 2026-09-26 — deploy the bvlk way (GHCR + SSH + compose); ship first, harden after; existing droplet shared with bvlk; secrets as a file on the droplet; new prod bot"
+decisions_confirmed: "CONFIRMED 2026-09-26 — deploy the bvlk way (GHCR + SSH + compose); ship first, harden after; existing droplet shared with bvlk; secrets as a file on the droplet; new prod bot. AMENDED 2026-10-01 — no separate prod bot: production reuses the dev bot (stop the server's poller before `make dev-bot`); docs/bot-setup.md Step 9 is the current text. Domain: fxlog.app"
 ---
 
 # M5 Phase 3+4 — Droplet Deploy Implementation Plan
