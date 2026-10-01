@@ -145,11 +145,12 @@ jobs:
 
           # Install the site file only if Caddy accepts it. A rejected reload keeps the running
           # config, and restoring the previous file keeps the disk in step with it, so a later
-          # restart of the edge cannot come up on a broken file.
+          # restart of the edge cannot come up on a broken file. compose exec attaches stdin like
+          # compose run does (-T only drops the TTY), hence the </dev/null on the reload.
           cd /srv/edge/sites
           if [ -f smart-accounting.caddy ]; then cp smart-accounting.caddy smart-accounting.caddy.prev; fi
           mv /tmp/smart-accounting.caddy smart-accounting.caddy
-          if ! docker compose -f /srv/edge/compose.yml exec -T caddy caddy reload --config /etc/caddy/Caddyfile; then
+          if ! docker compose -f /srv/edge/compose.yml exec -T caddy caddy reload --config /etc/caddy/Caddyfile </dev/null; then
             if [ -f smart-accounting.caddy.prev ]; then mv smart-accounting.caddy.prev smart-accounting.caddy; else rm smart-accounting.caddy; fi
             exit 1
           fi

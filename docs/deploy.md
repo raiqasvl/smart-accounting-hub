@@ -42,7 +42,11 @@ Use a separate key pair per repository so either can be revoked alone.
 
 ## 2. Moving bvlk onto the edge proxy
 
-bvlk's Caddy owns 80/443 today. It moves into `/srv/edge` so both projects can be served. Do the
+> **Done 2026-10-01** (raiqasvl/bvlk.exe#11, #12, #13): about 4 s of bvlk downtime, the same
+> certificate kept. The edge stack now runs from `/srv/edge`; keep this section as the record of
+> how, and as the recipe for the next project that joins the droplet.
+
+bvlk's Caddy owned 80/443 until then. It moves into `/srv/edge` so both projects can be served. Do the
 repository change first — if bvlk's old `deploy.yml` runs after the switch, it starts its own
 Caddy again, which then fails on the taken ports.
 
@@ -68,7 +72,7 @@ Caddy again, which then fails on the taken ports.
    variable) and `reverse_proxy bvlk-web:3000`.
 3. `deploy.yml`: scp `deploy/bvlk.caddy` to `/srv/edge/sites/bvlk.caddy` instead of the
    Caddyfile; run `up -d --remove-orphans` once to drop the old Caddy container; after `up -d`, add
-   `docker compose -f /srv/edge/compose.yml exec -T caddy caddy reload --config /etc/caddy/Caddyfile`.
+   `docker compose -f /srv/edge/compose.yml exec -T caddy caddy reload --config /etc/caddy/Caddyfile </dev/null`.
 
 **On the droplet (a few seconds of bvlk downtime at step 5):**
 
