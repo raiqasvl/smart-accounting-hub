@@ -107,8 +107,9 @@ install -d -m 750 -o deploy -g deploy /srv/smart-accounting /srv/smart-accountin
 chown deploy:deploy /srv/edge/sites
 ```
 
-On your machine, fill in a copy of [`deploy/.env.example`](../deploy/.env.example) with the new
-prod bot token and a freshly generated `JWT_SECRET` and DB password, then copy both files over:
+On your machine, fill in a copy of [`deploy/.env.example`](../deploy/.env.example) with the bot
+token (the same bot as local dev — see [bot-setup.md Step 9](bot-setup.md#step-9--production)) and a
+freshly generated `JWT_SECRET` and DB password, then copy both files over:
 
 ```bash
 python3 -c "import secrets; print(secrets.token_urlsafe(24))" > password.txt
@@ -144,8 +145,9 @@ them to GHCR as `latest` and `<sha>`. On the droplet it pulls the images, runs `
 `up -d`, installs the site file and reloads Caddy, then polls `https://<domain>/readyz` and `/`.
 To re-run a deploy by hand, use the Actions tab (`workflow_dispatch`).
 
-After the first successful deploy, point the prod bot at the site in @BotFather — see
-[bot-setup.md Step 9](bot-setup.md#step-9--production).
+After the first successful deploy, point the bot's Mini-App at the site in @BotFather — see
+[bot-setup.md Step 9](bot-setup.md#step-9--production). The same bot serves local development, so
+stop production's bot before running `make dev-bot` (Step 9 has the commands).
 
 ## 7. Operating
 
