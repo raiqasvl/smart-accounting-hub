@@ -1305,7 +1305,7 @@ jobs:
           cd /srv/edge/sites
           if [ -f smart-accounting.caddy ]; then cp smart-accounting.caddy smart-accounting.caddy.prev; fi
           mv /tmp/smart-accounting.caddy smart-accounting.caddy
-          if ! docker compose -f /srv/edge/compose.yml exec -T caddy caddy reload --config /etc/caddy/Caddyfile; then
+          if ! docker compose -f /srv/edge/compose.yml exec -T caddy caddy reload --config /etc/caddy/Caddyfile </dev/null; then
             if [ -f smart-accounting.caddy.prev ]; then mv smart-accounting.caddy.prev smart-accounting.caddy; else rm smart-accounting.caddy; fi
             exit 1
           fi
@@ -1430,7 +1430,7 @@ Caddy again, which then fails on the taken ports.
    (the value of `SITE_ADDRESS` in `/srv/bvlk/.env`) and `reverse_proxy bvlk-web:3000`.
 3. `deploy.yml`: scp `deploy/bvlk.caddy` to `/srv/edge/sites/bvlk.caddy` instead of the
    Caddyfile; after `up -d` add `--remove-orphans` once and
-   `docker compose -f /srv/edge/compose.yml exec -T caddy caddy reload --config /etc/caddy/Caddyfile`.
+   `docker compose -f /srv/edge/compose.yml exec -T caddy caddy reload --config /etc/caddy/Caddyfile </dev/null`.
 
 **On the droplet (a few seconds of bvlk downtime at step 5):**
 
