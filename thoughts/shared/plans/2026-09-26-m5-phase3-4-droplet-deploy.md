@@ -1296,7 +1296,7 @@ jobs:
 
           # Before up, never from an entrypoint: api and bot start together and would race for
           # alembic's lock. Revision 0002 seeds currencies, so this is data as well as schema.
-          docker compose run --rm migrate
+          docker compose run --rm -T migrate </dev/null
           docker compose up -d --remove-orphans
 
           # Install the site file only if Caddy accepts it. A rejected reload keeps the running
